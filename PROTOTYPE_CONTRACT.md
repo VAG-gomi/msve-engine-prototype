@@ -33,13 +33,15 @@ Top-level JSON object:
 evidence is requested; otherwise the claim is processed without solver
 observation (recorded as underspecified for solver-backed assurance).
 
-**Input evidence policy:** caller-supplied `evidence.recompute` records are
-**never trusted**. The pipeline quarantines them transparently (visible in
+**Input evidence policy:** caller-supplied `evidence.recompute` and
+`evidence.test_records` are **never trusted** as assurance evidence. The
+pipeline quarantines them transparently (visible in
 `quarantined_input_evidence`, never silently dropped) and only a recompute
 record generated from the *current* Core B execution — bound to the
 claim_id, query_id, checker identity/version and configured bound — can
-satisfy `INDEPENDENT_RECOMPUTE`. A supplied `agrees: true` cannot override
-a failed corroboration.
+satisfy `INDEPENDENT_RECOMPUTE`. `TEST_BACKED` cannot be earned at all in
+this prototype (no trusted test-execution mechanism). A supplied
+`agrees: true` or `passed: true` cannot override a failed corroboration.
 
 ## 2. Admission verdicts
 
@@ -118,11 +120,17 @@ Config values are range-validated at load; invalid config → startup error.
   `outcome_compatible` per the table above. **D1:** `UNKNOWN` +
   `INCONCLUSIVE` may yield `SOLVER_BACKED` with `weak:true`; never a
   proof, never a positive conclusion.
-- `TEST_BACKED`: requires ≥1 passing test record bound to the claim_id.
-- `INDEPENDENT_RECOMPUTE`: requires Core B agreement record (D4).
-  If Core B does not confirm, the disagreement is **recorded** in the
-  typed result's `discrepancies` and the basis is withheld — the
-  observation-derived semantic is preserved, nothing is raised away.
+- `TEST_BACKED`: **never awarded in this prototype** (WO-1.4). No
+  trusted test-execution mechanism exists, so caller-supplied test records
+  — however well-formed — cannot earn it. Supplied `test_records` are
+  quarantined transparently. (Same refusal class as `KERNEL_PROOF`.)
+- `INDEPENDENT_RECOMPUTE`: requires a Core B agreement record (D4)
+  generated from the current execution and bound to claim_id, query_id,
+  checker identity/version and configured bound. Caller-supplied
+  `evidence.recompute` is quarantined, never trusted. If Core B does not
+  confirm, the disagreement is **recorded** in the typed result's
+  `discrepancies` and the basis is withheld — the observation-derived
+  semantic is preserved, nothing is raised away.
 - `KERNEL_PROOF`: never awarded (no kernel in prototype) → UNSUPPORTED.
 - Attempting any basis without its evidence → explicit rejection, not a
   silent downgrade.

@@ -94,3 +94,12 @@ Fresh-venv procedure above reproduces 54/54. Golden vectors in
 - Full suite: **89 passed, 0 failed**.
   Log: `logs/test_run_2026-10-10_wo13.log`.
 - Full detail: `CORRECTION_REPORT_WO13.md`.
+
+## Addendum 2026-10-10 — MSVE-WO-1.4
+
+- New: `tests/test_binding.py` (6); TEST_BACKED refusal tests (3, replacing 4 superseded).
+- Fixes: TEST_BACKED refused (no trusted test-execution mechanism);
+  test_records quarantined; award() verifies all five recompute binding fields.
+- Full suite: **94 passed, 0 failed**.
+  Log: `logs/test_run_2026-10-10_wo14.log`.
+- Full detail: `CORRECTION_REPORT_WO14.md`.

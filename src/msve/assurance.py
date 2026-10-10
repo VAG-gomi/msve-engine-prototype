@@ -13,6 +13,7 @@ D1: UNKNOWN + INCONCLUSIVE may yield SOLVER_BACKED with weak=True.
     weak is propagated and must never be presented as proof.
 """
 from .admission import SEVEN_KINDS
+from .checker import CHECKER_ID, CHECKER_VERSION
 from .errors import MSVEError
 
 
@@ -46,7 +47,8 @@ def semantic_for(kind, outcome):
     return "RECORDED_UNINTERPRETED"
 
 
-def award(kind, outcome, semantic_variant, evidence, claim_id, basis_ask):
+def award(kind, outcome, semantic_variant, evidence, claim_id, basis_ask,
+          expected_bound=None):
     """Decide the achieved assurance basis. Returns dict or raises."""
     evidence = evidence or {}
     notes = []
@@ -98,15 +100,13 @@ def award(kind, outcome, semantic_variant, evidence, claim_id, basis_ask):
         return {"basis": "SOLVER_BACKED", "weak": False, "notes": notes}
 
     if basis_ask == "TEST_BACKED":
-        trs = evidence.get("test_records", [])
-        linked = [t for t in trs if t.get("claim_id") == claim_id and t.get("passed") is True]
-        if not linked:
-            raise MSVEError(
-                "EVIDENCE_MISSING",
-                "TEST_BACKED requires at least one passing test record bound to the claim_id",
-            )
-        notes.append(f"{len(linked)} passing test record(s) bound to claim")
-        return {"basis": "TEST_BACKED", "weak": False, "notes": notes}
+        # WO-1.4: refused — no trusted test-execution mechanism exists in
+        # this prototype, so caller-supplied test records must not earn the
+        # basis (not even well-formed ones). See PROTOTYPE_CONTRACT.md §8.
+        raise MSVEError(
+            "UNSUPPORTED_BASIS",
+            "TEST_BACKED has no trusted test-execution mechanism in this prototype",
+        )
 
     if basis_ask == "INDEPENDENT_RECOMPUTE":
         rec = evidence.get("recompute")
@@ -116,16 +116,28 @@ def award(kind, outcome, semantic_variant, evidence, claim_id, basis_ask):
                 "INDEPENDENT_RECOMPUTE requires a recompute record with agrees=true "
                 "from the independent checker core",
             )
-        # binding (defense in depth): the record must come from the current
-        # execution — claim_id, query_id, checker identity and bound must match.
-        # Caller-supplied records are quarantined by the pipeline and never
-        # reach this point, but award() does not rely on that alone.
+        # Complete binding (WO-1.4): the record must match the current
+        # execution on every contract-required field — claim ID, query ID,
+        # checker identity, checker version, and configured enumeration
+        # bound. The pipeline quarantines caller-supplied records, but
+        # award() does not rely on that alone.
         obs = evidence.get("solver_observation") or {}
-        if rec.get("claim_id") != claim_id or rec.get("query_id") != obs.get("query_id"):
+        mismatches = []
+        if rec.get("claim_id") != claim_id:
+            mismatches.append("claim_id")
+        if rec.get("query_id") != obs.get("query_id"):
+            mismatches.append("query_id")
+        if rec.get("checker") != CHECKER_ID:
+            mismatches.append("checker identity")
+        if rec.get("checker_version") != CHECKER_VERSION:
+            mismatches.append("checker version")
+        if expected_bound is not None and rec.get("bound") != expected_bound:
+            mismatches.append("enumeration bound")
+        if mismatches:
             raise MSVEError(
                 "EVIDENCE_MISSING",
-                "recompute record is not bound to the current claim/query execution; "
-                "INDEPENDENT_RECOMPUTE denied",
+                "recompute record binding mismatch "
+                f"({', '.join(mismatches)}); INDEPENDENT_RECOMPUTE denied",
             )
         notes.append(f"independent checker {rec.get('checker')!r} agrees (record {rec.get('record_ref')})")
         return {"basis": "INDEPENDENT_RECOMPUTE", "weak": False, "notes": notes}

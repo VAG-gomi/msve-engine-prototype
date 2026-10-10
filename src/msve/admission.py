@@ -28,6 +28,9 @@ def admit(doc, cfg):
     basis_asked = doc.get("assurance_ask")
     if basis_asked == "KERNEL_PROOF":
         return ("UNSUPPORTED", ["KERNEL_PROOF has no implemented evidence path in this prototype (no kernel)"])
+    if basis_asked == "TEST_BACKED":
+        return ("UNSUPPORTED", ["TEST_BACKED has no trusted test-execution mechanism in this prototype; "
+                                "caller-supplied test records cannot earn it (WO-1.4)"])
     if basis_asked == "SOLVER_BACKED" and query is None:
         return ("UNDERSPECIFIED", ["SOLVER_BACKED requested but no query supplied"])
     if basis_asked == "INDEPENDENT_RECOMPUTE":

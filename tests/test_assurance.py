@@ -11,41 +11,45 @@ def test_no_basis_by_default():
     assert r["assurance_achieved"] is None
 
 
-def test_test_backed_with_evidence():
+def test_test_backed_refused_no_mechanism():
+    # WO-1.4: even a well-formed passing record cannot earn TEST_BACKED —
+    # no trusted test-execution mechanism exists in this prototype.
     d = doc()
     d["claim"]["query"] = holds_query()
     r0 = run_doc(d)
     cid = r0["claim_id"]
     d["evidence"] = {"test_records": [
-        {"test_id": "t1", "claim_id": cid, "passed": True}]}
+        {"test_id": "t1", "claim_id": cid, "passed": True,
+         "spec_version": "0.8.8.1", "test_run_ref": "run-1",
+         "runner": "external"}]}
     d["assurance_ask"] = "TEST_BACKED"
     r = run_doc(d)
-    assert r["assurance_achieved"] == "TEST_BACKED"
+    assert r["admission"] == "UNSUPPORTED"
+    assert r["assurance_achieved"] is None
+    # the supplied records are quarantined visibly, not silently dropped
+    assert len(r["quarantined_input_evidence"]) == 1
+    assert r["quarantined_input_evidence"][0]["field"] == "evidence.test_records"
 
 
-def test_test_backed_without_evidence_denied():
+def test_test_backed_fabricated_record_refused():
     d = doc()
+    d["evidence"] = {"test_records": [{"test_id": "t1", "claim_id": "x", "passed": True}]}
     d["assurance_ask"] = "TEST_BACKED"
     r = run_doc(d)
-    # underspecified at admission (no test records supplied)
-    assert r["admission"] == "UNDERSPECIFIED"
+    assert r["admission"] == "UNSUPPORTED"
+    assert r["assurance_achieved"] is None
 
 
-def test_test_backed_wrong_claim_id_denied():
+def test_test_backed_unsupported_at_award_boundary():
+    # defense in depth: direct award() also refuses
     from msve import assurance as asr
     with pytest.raises(MSVEError) as e:
         asr.award("holds", "UNSAT", "HOLDS",
-                  {"test_records": [{"test_id": "t1", "claim_id": "other", "passed": True}]},
-                  "real-id", "TEST_BACKED")
-    assert e.value.code == "EVIDENCE_MISSING"
-
-
-def test_test_backed_failed_test_denied():
-    from msve import assurance as asr
-    with pytest.raises(MSVEError):
-        asr.award("holds", "UNSAT", "HOLDS",
-                  {"test_records": [{"test_id": "t1", "claim_id": "c", "passed": False}]},
+                  {"test_records": [{"test_id": "t1", "claim_id": "c",
+                                     "passed": True, "spec_version": "0.8.8.1",
+                                     "test_run_ref": "r", "runner": "ext"}]},
                   "c", "TEST_BACKED")
+    assert e.value.code == "UNSUPPORTED_BASIS"
 
 
 def test_seven_kinds_no_solver_backed():

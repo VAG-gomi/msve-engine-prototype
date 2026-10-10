@@ -52,18 +52,23 @@ def run(doc, cfg=None):
     }
     cid = ident.claim_id(descriptor)
 
-    # Input policy (applies on all paths): caller-supplied
-    # evidence.recompute records are NEVER trusted. Quarantine them
-    # transparently; only a record generated from the CURRENT checker
-    # execution can satisfy award().
+    # Input policy (applies on all paths): caller-supplied evidence records
+    # are NEVER trusted as assurance evidence. Quarantine them transparently;
+    # only records generated from the CURRENT execution can satisfy award().
+    #  - evidence.recompute: regenerated from the current Core B run (D4).
+    #  - evidence.test_records: no trusted test-execution mechanism exists in
+    #    this prototype, so TEST_BACKED is refused outright (WO-1.4).
     evidence = dict(evidence)
-    if "recompute" in evidence:
-        quarantined.append({
-            "field": "evidence.recompute",
-            "reason": "caller-supplied recompute records are not trusted; "
-                      "only current-execution checker records are used",
-            "record": evidence.pop("recompute"),
-        })
+    for _field in ("recompute", "test_records"):
+        if _field in evidence:
+            quarantined.append({
+                "field": f"evidence.{_field}",
+                "reason": ("caller-supplied evidence records are not trusted; "
+                           "only current-execution records are used" if _field == "recompute"
+                           else "no trusted test-execution mechanism exists in this prototype; "
+                                "TEST_BACKED cannot be earned from supplied records"),
+                "record": evidence.pop(_field),
+            })
 
     # UNSUPPORTED / UNDERSPECIFIED: record the verdict explicitly, award nothing
     if verdict in ("UNSUPPORTED", "UNDERSPECIFIED"):
@@ -139,7 +144,8 @@ def run(doc, cfg=None):
     # 6. assurance — awarded only on evidence; a failed corroboration
     # yields an explicit no-basis result, never a silent downgrade
     try:
-        assurance = asr.award(kind, outcome, semantic["variant"], evidence, cid, basis_ask)
+        assurance = asr.award(kind, outcome, semantic["variant"], evidence, cid, basis_ask,
+                              expected_bound=cfg["checker_enumeration_bound"])
     except MSVEError as e:
         if basis_ask == "INDEPENDENT_RECOMPUTE" and discrepancies:
             assurance = {"basis": None, "weak": False,
