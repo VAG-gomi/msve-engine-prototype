@@ -1,0 +1,52 @@
+{
+  "experimental": true,
+  "admission": "ACCEPTED",
+  "admission_notes": [],
+  "claim_id": "3377bc27e81c4afaa247b5aae358b40945d7d246d84bd80c464543b19cd9d466",
+  "claim_kind": "holds",
+  "proposition": "there exists x with 50 < x < 200",
+  "spec_version": "0.8.8.1",
+  "semantic_result": {
+    "variant": "VIOLATED",
+    "witness_ref": "solver_observation.model",
+    "witness": {
+      "x": "195"
+    }
+  },
+  "solver_observation": {
+    "tool": "z3",
+    "version": "5.1.0",
+    "query_id": "ed44f6b98346844ae177233dd3db1a220e94866b282a8864536b65976d897084",
+    "invocation_id": "ae9a65acc10dbbbefcdd6b37070d9c2e448a36cdbe12a3c322ac03d46a790ad1",
+    "outcome": "SAT",
+    "elapsed_ms": 14,
+    "model": {
+      "x": "195"
+    }
+  },
+  "assurance_required": null,
+  "assurance_achieved": null,
+  "assurance_weak": false,
+  "assurance_notes": [
+    "withheld: EVIDENCE_MISSING: INDEPENDENT_RECOMPUTE requires a recompute record with agrees=true from the independent checker core"
+  ],
+  "assumptions_unverified": [
+    "integer arithmetic is consistent"
+  ],
+  "evidence": {},
+  "verification_records": [],
+  "discrepancies": [
+    {
+      "checker": "core-b",
+      "issue": "no independent confirmation (core B: UNKNOWN, solver: SAT); core B confirms SAT only, never UNSAT",
+      "solver_outcome": "SAT"
+    }
+  ],
+  "provenance": {
+    "spec": "candidate/0.8.8.1/MSVE_DESIGN_SPEC_v0.8.md",
+    "spec_sha256": "dbc610c3a97d7107ab0f4de499b240e243f45c49b56f0a1855b7333c80cb7782",
+    "rulings": "decision-ledger/MSVE_BRAINSTORM_DECISION_LEDGER.csv (DEC-008..DEC-016, DEC-025)",
+    "prototype": "MSVE-WO-1.0 exploratory prototype v0.1.0-proto"
+  },
+  "produced_at": "2026-10-10T06:57:43Z"
+}

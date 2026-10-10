@@ -1,0 +1,50 @@
+{
+  "spec_version": "0.8.8.1",
+  "claim": {
+    "kind": "holds",
+    "proposition": "for all x in [0,5], x+1 > x+2",
+    "goal_ref": "xval-goal-violated-sat",
+    "inputs_ref": "xval-inputs-violated-sat",
+    "assumptions": [
+      "integer arithmetic is consistent"
+    ],
+    "query": {
+      "language": "msve-arith-v1",
+      "declarations": [
+        {
+          "name": "x",
+          "sort": "Int"
+        }
+      ],
+      "assertions": [
+        [
+          "and",
+          [
+            ">=",
+            "x",
+            0
+          ],
+          [
+            "<=",
+            "x",
+            5
+          ],
+          [
+            "<=",
+            [
+              "+",
+              "x",
+              1
+            ],
+            [
+              "+",
+              "x",
+              2
+            ]
+          ]
+        ]
+      ]
+    }
+  },
+  "assurance_ask": "INDEPENDENT_RECOMPUTE"
+}

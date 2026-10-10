@@ -112,6 +112,9 @@ Config values are range-validated at load; invalid config → startup error.
   proof, never a positive conclusion.
 - `TEST_BACKED`: requires ≥1 passing test record bound to the claim_id.
 - `INDEPENDENT_RECOMPUTE`: requires Core B agreement record (D4).
+  If Core B does not confirm, the disagreement is **recorded** in the
+  typed result's `discrepancies` and the basis is withheld — the
+  observation-derived semantic is preserved, nothing is raised away.
 - `KERNEL_PROOF`: never awarded (no kernel in prototype) → UNSUPPORTED.
 - Attempting any basis without its evidence → explicit rejection, not a
   silent downgrade.

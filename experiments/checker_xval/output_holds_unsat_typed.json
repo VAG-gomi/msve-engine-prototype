@@ -1,0 +1,45 @@
+{
+  "experimental": true,
+  "admission": "ACCEPTED",
+  "admission_notes": [],
+  "claim_id": "cbf71cce8e9ec2532c1e003139cf75d0907543f23b8ffcdf25193a034f8304ca",
+  "claim_kind": "holds",
+  "proposition": "for all x in [0,5], x*x >= x",
+  "spec_version": "0.8.8.1",
+  "semantic_result": {
+    "variant": "HOLDS"
+  },
+  "solver_observation": {
+    "tool": "z3",
+    "version": "5.1.0",
+    "query_id": "01139a6a1e33713b4baa08c9efa5acc9e8a3a6cbe0ad63c67cfc791d290cd800",
+    "invocation_id": "c7965d1afa5996b864b11a8e2e05ea0fcf27e77e5e5fe5370c043fce278ddf49",
+    "outcome": "UNSAT",
+    "elapsed_ms": 4
+  },
+  "assurance_required": null,
+  "assurance_achieved": null,
+  "assurance_weak": false,
+  "assurance_notes": [
+    "withheld: EVIDENCE_MISSING: INDEPENDENT_RECOMPUTE requires a recompute record with agrees=true from the independent checker core"
+  ],
+  "assumptions_unverified": [
+    "integer arithmetic is consistent"
+  ],
+  "evidence": {},
+  "verification_records": [],
+  "discrepancies": [
+    {
+      "checker": "core-b",
+      "issue": "no independent confirmation (core B: UNKNOWN, solver: UNSAT); core B confirms SAT only, never UNSAT",
+      "solver_outcome": "UNSAT"
+    }
+  ],
+  "provenance": {
+    "spec": "candidate/0.8.8.1/MSVE_DESIGN_SPEC_v0.8.md",
+    "spec_sha256": "dbc610c3a97d7107ab0f4de499b240e243f45c49b56f0a1855b7333c80cb7782",
+    "rulings": "decision-ledger/MSVE_BRAINSTORM_DECISION_LEDGER.csv (DEC-008..DEC-016, DEC-025)",
+    "prototype": "MSVE-WO-1.0 exploratory prototype v0.1.0-proto"
+  },
+  "produced_at": "2026-10-10T06:57:43Z"
+}

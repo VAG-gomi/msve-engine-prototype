@@ -1,0 +1,108 @@
+[
+  {
+    "input": "input_boundary_sat.json",
+    "input_sha256": "e7135c6eeba866b11015cb69af07d9a1782111679d8e2a5e2cb9a6222634e032",
+    "query_id": "ed44f6b98346844ae177233dd3db1a220e94866b282a8864536b65976d897084",
+    "assurance_ask": "INDEPENDENT_RECOMPUTE",
+    "core_b": {
+      "verdict": "UNKNOWN",
+      "bound": 5,
+      "note": "no satisfying assignment within enumeration bound; search incomplete"
+    },
+    "core_b_ms": 0,
+    "pipeline_ok": true,
+    "claim_id": "3377bc27e81c4afaa247b5aae358b40945d7d246d84bd80c464543b19cd9d466",
+    "core_a_outcome": "SAT",
+    "core_a_reason": null,
+    "core_a_ms": 14,
+    "semantic": "VIOLATED",
+    "assurance_achieved": null,
+    "assurance_weak": false,
+    "discrepancies": [
+      {
+        "checker": "core-b",
+        "issue": "no independent confirmation (core B: UNKNOWN, solver: SAT); core B confirms SAT only, never UNSAT",
+        "solver_outcome": "SAT"
+      }
+    ],
+    "experimental": true,
+    "wall_ms": 17
+  },
+  {
+    "input": "input_holds_unsat.json",
+    "input_sha256": "f83489185a60bb5001041b2293c0abfa42a619982d1e5cc6b69c78784936cb4d",
+    "query_id": "01139a6a1e33713b4baa08c9efa5acc9e8a3a6cbe0ad63c67cfc791d290cd800",
+    "assurance_ask": "SOLVER_BACKED",
+    "core_b": {
+      "verdict": "UNKNOWN",
+      "bound": 5,
+      "note": "no satisfying assignment within enumeration bound; search incomplete"
+    },
+    "core_b_ms": 0,
+    "pipeline_ok": true,
+    "claim_id": "cbf71cce8e9ec2532c1e003139cf75d0907543f23b8ffcdf25193a034f8304ca",
+    "core_a_outcome": "UNSAT",
+    "core_a_reason": null,
+    "core_a_ms": 6,
+    "semantic": "HOLDS",
+    "assurance_achieved": "SOLVER_BACKED",
+    "assurance_weak": false,
+    "discrepancies": [],
+    "experimental": true,
+    "wall_ms": 8
+  },
+  {
+    "input": "input_holds_unsat.json [ask=INDEPENDENT_RECOMPUTE probe]",
+    "input_sha256": "f83489185a60bb5001041b2293c0abfa42a619982d1e5cc6b69c78784936cb4d",
+    "query_id": "01139a6a1e33713b4baa08c9efa5acc9e8a3a6cbe0ad63c67cfc791d290cd800",
+    "assurance_ask": "INDEPENDENT_RECOMPUTE",
+    "core_b": {
+      "verdict": "UNKNOWN",
+      "bound": 5,
+      "note": "no satisfying assignment within enumeration bound; search incomplete"
+    },
+    "core_b_ms": 0,
+    "pipeline_ok": true,
+    "claim_id": "cbf71cce8e9ec2532c1e003139cf75d0907543f23b8ffcdf25193a034f8304ca",
+    "core_a_outcome": "UNSAT",
+    "core_a_reason": null,
+    "core_a_ms": 4,
+    "semantic": "HOLDS",
+    "assurance_achieved": null,
+    "assurance_weak": false,
+    "discrepancies": [
+      {
+        "checker": "core-b",
+        "issue": "no independent confirmation (core B: UNKNOWN, solver: UNSAT); core B confirms SAT only, never UNSAT",
+        "solver_outcome": "UNSAT"
+      }
+    ],
+    "experimental": true,
+    "wall_ms": 6
+  },
+  {
+    "input": "input_violated_sat.json",
+    "input_sha256": "9e3a366d98dfbcd0a444f45a71e090d3254a9e01f0150da41ab229e5a577bde2",
+    "query_id": "a218a4b2475706b89408bf68b4cb372a0ca395c138325b0374d44264fe09c21f",
+    "assurance_ask": "INDEPENDENT_RECOMPUTE",
+    "core_b": {
+      "verdict": "SAT",
+      "witness": {
+        "x": 0
+      },
+      "bound": 5
+    },
+    "core_b_ms": 0,
+    "pipeline_ok": true,
+    "claim_id": "b5579ccbd57013acde32a7a4d6413d82c43d4429e9da298fbfe6eb8627ba8308",
+    "core_a_outcome": "SAT",
+    "core_a_reason": null,
+    "core_a_ms": 6,
+    "semantic": "VIOLATED",
+    "assurance_achieved": "INDEPENDENT_RECOMPUTE",
+    "assurance_weak": false,
+    "discrepancies": [],
+    "experimental": true,
+    "wall_ms": 7
+  }
+]

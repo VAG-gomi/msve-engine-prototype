@@ -1,0 +1,53 @@
+{
+  "experimental": true,
+  "admission": "ACCEPTED",
+  "admission_notes": [],
+  "claim_id": "b5579ccbd57013acde32a7a4d6413d82c43d4429e9da298fbfe6eb8627ba8308",
+  "claim_kind": "holds",
+  "proposition": "for all x in [0,5], x+1 > x+2",
+  "spec_version": "0.8.8.1",
+  "semantic_result": {
+    "variant": "VIOLATED",
+    "witness_ref": "solver_observation.model",
+    "witness": {
+      "x": "0"
+    }
+  },
+  "solver_observation": {
+    "tool": "z3",
+    "version": "5.1.0",
+    "query_id": "a218a4b2475706b89408bf68b4cb372a0ca395c138325b0374d44264fe09c21f",
+    "invocation_id": "5be13d83450cfc7ce4c08fd3fea9a6a48ea146ad3b5a82544b692b16e0ddd322",
+    "outcome": "SAT",
+    "elapsed_ms": 6,
+    "model": {
+      "x": "0"
+    }
+  },
+  "assurance_required": null,
+  "assurance_achieved": "INDEPENDENT_RECOMPUTE",
+  "assurance_weak": false,
+  "assurance_notes": [
+    "independent checker 'core-b' agrees (record core-b:a218a4b2475706b8)"
+  ],
+  "assumptions_unverified": [
+    "integer arithmetic is consistent"
+  ],
+  "evidence": {
+    "recompute": {
+      "checker": "core-b",
+      "agrees": true,
+      "record_ref": "core-b:a218a4b2475706b8",
+      "note": "core B independently found a satisfying assignment"
+    }
+  },
+  "verification_records": [],
+  "discrepancies": [],
+  "provenance": {
+    "spec": "candidate/0.8.8.1/MSVE_DESIGN_SPEC_v0.8.md",
+    "spec_sha256": "dbc610c3a97d7107ab0f4de499b240e243f45c49b56f0a1855b7333c80cb7782",
+    "rulings": "decision-ledger/MSVE_BRAINSTORM_DECISION_LEDGER.csv (DEC-008..DEC-016, DEC-025)",
+    "prototype": "MSVE-WO-1.0 exploratory prototype v0.1.0-proto"
+  },
+  "produced_at": "2026-10-10T06:57:43Z"
+}

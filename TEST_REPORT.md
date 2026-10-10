@@ -72,3 +72,15 @@ Fresh-venv procedure above reproduces 54/54. Golden vectors in
   → UNKNOWN → INCONCLUSIVE + weak SOLVER_BACKED; Core B UNKNOWN
   (bounded-incomplete), no false positive.
 - Full detail: `UNKNOWN_EXPERIMENT_REPORT.md`.
+
+## Addendum 2026-10-10 — MSVE-WO-1.2
+
+- New: `tests/test_fault_injection.py` (3 INJECTED), `tests/test_checker_limits.py`
+  (4 OBSERVED). Experiment: `experiments/checker_xval/` (3 inputs, driver,
+  per-case typed outputs, `xval_records.json`).
+- Design change: checker disagreement now returns a typed result with the
+  discrepancy recorded (previously raised CHECKER_DISAGREEMENT); basis
+  withheld with explicit note. `PROTOTYPE_CONTRACT.md` §8 updated.
+- Full suite: **65 passed, 0 failed**.
+  Log: `logs/test_run_2026-10-10_wo12.log`.
+- Full detail: `CHECKER_XVAL_REPORT.md`.

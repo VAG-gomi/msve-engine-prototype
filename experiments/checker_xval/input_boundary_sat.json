@@ -1,0 +1,37 @@
+{
+  "spec_version": "0.8.8.1",
+  "claim": {
+    "kind": "holds",
+    "proposition": "there exists x with 50 < x < 200",
+    "goal_ref": "xval-goal-boundary-sat",
+    "inputs_ref": "xval-inputs-boundary-sat",
+    "assumptions": [
+      "integer arithmetic is consistent"
+    ],
+    "query": {
+      "language": "msve-arith-v1",
+      "declarations": [
+        {
+          "name": "x",
+          "sort": "Int"
+        }
+      ],
+      "assertions": [
+        [
+          "and",
+          [
+            ">",
+            "x",
+            50
+          ],
+          [
+            "<",
+            "x",
+            200
+          ]
+        ]
+      ]
+    }
+  },
+  "assurance_ask": "INDEPENDENT_RECOMPUTE"
+}

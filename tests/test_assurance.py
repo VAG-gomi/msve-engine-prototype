@@ -70,14 +70,17 @@ def test_independent_recompute_agreement():
     assert r["discrepancies"] == []
 
 
-def test_independent_recompute_disagreement_denied():
-    # solver UNSAT can never be confirmed by core B -> disagreement path
+def test_independent_recompute_disagreement_recorded():
+    # solver UNSAT can never be confirmed by core B -> disagreement is
+    # RECORDED in the typed result and the basis is withheld (not raised away)
     d = doc()
     d["claim"]["query"] = holds_query(negated=True)  # UNSAT
     d["assurance_ask"] = "INDEPENDENT_RECOMPUTE"
-    with pytest.raises(MSVEError) as e:
-        run_doc(d)
-    assert e.value.code == "CHECKER_DISAGREEMENT"
+    r = run_doc(d)
+    assert r["assurance_achieved"] is None
+    assert len(r["discrepancies"]) == 1
+    assert r["discrepancies"][0]["checker"] == "core-b"
+    assert any("withheld" in n for n in r["assurance_notes"])
 
 
 def test_kernel_proof_never_awarded():

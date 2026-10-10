@@ -96,22 +96,34 @@ def run(doc, cfg=None):
         if variant == "RECORDED_UNINTERPRETED":
             semantic["reason"] = "kind interpretation undefined (D2); observation recorded only"
 
-    # 5. independent recompute check (D4) — run core B when asked
+    # 5. independent recompute check (D4) — run core B when asked.
+    # Disagreement is RECORDED in the typed result (not raised away):
+    # the observation-derived semantic is preserved, the discrepancy is
+    # explicit, and no assurance basis is awarded.
     basis_ask = doc.get("assurance_ask")
     if basis_ask == "INDEPENDENT_RECOMPUTE" and query is not None and solver_obs:
         ok, why = checker.agrees_with_solver(query, outcome, cfg["checker_enumeration_bound"])
-        if not ok:
-            discrepancies.append({"checker": "core-b", "issue": why})
-            raise MSVEError("CHECKER_DISAGREEMENT", f"independent checker did not confirm: {why}")
-        evidence["recompute"] = {
-            "checker": "core-b",
-            "agrees": True,
-            "record_ref": f"core-b:{queries.query_id(query)[:16]}",
-            "note": why,
-        }
+        if ok:
+            evidence["recompute"] = {
+                "checker": "core-b",
+                "agrees": True,
+                "record_ref": f"core-b:{queries.query_id(query)[:16]}",
+                "note": why,
+            }
+        else:
+            discrepancies.append({"checker": "core-b", "issue": why,
+                                  "solver_outcome": outcome})
 
-    # 6. assurance
-    assurance = asr.award(kind, outcome, semantic["variant"], evidence, cid, basis_ask)
+    # 6. assurance — awarded only on evidence; a failed corroboration
+    # yields an explicit no-basis result, never a silent downgrade
+    try:
+        assurance = asr.award(kind, outcome, semantic["variant"], evidence, cid, basis_ask)
+    except MSVEError as e:
+        if basis_ask == "INDEPENDENT_RECOMPUTE" and discrepancies:
+            assurance = {"basis": None, "weak": False,
+                         "notes": [f"withheld: {e.code}: {e}"]}
+        else:
+            raise
 
     # 7. verification records (capacity-gated slots)
     check_limit(cfg, "max_verification_records", 0, "verification records")

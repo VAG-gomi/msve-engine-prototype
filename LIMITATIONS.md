@@ -47,3 +47,11 @@ capability; every result carries `experimental:true`.
 - Performance or scalability characteristics.
 - Conformance of the prototype's outcome table to a frozen specification
   (no freeze exists; D7 gates are all open).
+
+## WO-1.2 additions
+
+- Core B corroborates SAT only; INDEPENDENT_RECOMPUTE is structurally
+  unavailable for UNSAT/HOLDS claims in this prototype.
+- Trust boundary: the awarding logic trusts Core B's agreement signal; a
+  compromised checker is not detectable by this engine (demonstrated by
+  injected test, disclosed as limitation).
