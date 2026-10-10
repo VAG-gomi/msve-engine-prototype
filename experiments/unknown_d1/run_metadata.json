@@ -1,0 +1,19 @@
+{
+  "input_sha256": "2bc53b135ad2696b4756a2223071925232da042454fbd851c009555f43447422",
+  "query_id": "bb97e5763977ad1b2bd51de450a96f54a4b018599babb98dc2d3db70fa5bd13e",
+  "core_b": {
+    "verdict": "UNKNOWN",
+    "bound": 5,
+    "note": "no satisfying assignment within enumeration bound; search incomplete"
+  },
+  "wall_ms": 5003,
+  "checks": {
+    "observation_preserved": true,
+    "weak_solver_backed": true,
+    "weak_explicit": true,
+    "no_positive_conclusion": true,
+    "no_holds_claim": true,
+    "core_b_no_false_positive": true,
+    "experimental_flag": true
+  }
+}

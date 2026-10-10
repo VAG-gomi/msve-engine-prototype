@@ -1,0 +1,94 @@
+[
+  {
+    "name": "basic",
+    "descriptor": {
+      "kind": "holds",
+      "proposition": "x+1 > x",
+      "goal_ref": "g1",
+      "inputs_ref": "i1",
+      "assumptions": [],
+      "spec_version": "0.8.8.1"
+    },
+    "claim_id": "5c3acb6aa7ef925c92e4da13ea3574195f872c64bfa2461da16193ca4c3fe77e"
+  },
+  {
+    "name": "with-assumptions",
+    "descriptor": {
+      "kind": "prove",
+      "proposition": "p",
+      "goal_ref": "g",
+      "inputs_ref": "i",
+      "assumptions": [
+        "b",
+        "a"
+      ],
+      "spec_version": "0.8.8.1"
+    },
+    "claim_id": "2ce7046207cc7afdd501a9df2723d41e9c45e5539ff2d843ee717f2e1ad4ad11"
+  },
+  {
+    "name": "pipe-in-content",
+    "descriptor": {
+      "kind": "holds",
+      "proposition": "a|b",
+      "goal_ref": "g",
+      "inputs_ref": "i",
+      "assumptions": [],
+      "spec_version": "0.8.8.1"
+    },
+    "claim_id": "4ee7544557f4e40aa4c861c5a2c507590bed8b22c42c1706599928465b999bef"
+  },
+  {
+    "name": "comma-in-assumption",
+    "descriptor": {
+      "kind": "holds",
+      "proposition": "p",
+      "goal_ref": "g",
+      "inputs_ref": "i",
+      "assumptions": [
+        "x,y"
+      ],
+      "spec_version": "0.8.8.1"
+    },
+    "claim_id": "e887398650e1301353c29f1a00b6eb7798921839bcb9fb12931d76f80fcca99c"
+  },
+  {
+    "name": "empty-proposition",
+    "descriptor": {
+      "kind": "derive",
+      "proposition": "",
+      "goal_ref": "g",
+      "inputs_ref": "i",
+      "assumptions": [],
+      "spec_version": "0.8.8.1"
+    },
+    "claim_id": "2a0c8b80061617269f6676cd933f0a770d431471ee5e8491a2c05d485a3754bb"
+  },
+  {
+    "name": "unicode",
+    "descriptor": {
+      "kind": "holds",
+      "proposition": "caf\u00e9",
+      "goal_ref": "g",
+      "inputs_ref": "i",
+      "assumptions": [],
+      "spec_version": "0.8.8.1"
+    },
+    "claim_id": "7e47f1ca9b6d56d2f8cf874ebda46527a2ecd1cae67d218bdfb009b877ed986c"
+  },
+  {
+    "name": "dup-assumptions",
+    "descriptor": {
+      "kind": "holds",
+      "proposition": "p",
+      "goal_ref": "g",
+      "inputs_ref": "i",
+      "assumptions": [
+        "a",
+        "a"
+      ],
+      "spec_version": "0.8.8.1"
+    },
+    "claim_id": "1995a5b093ba2f62556873224f1bcb305386544e1431083bd89cbe668dcb0db9"
+  }
+]

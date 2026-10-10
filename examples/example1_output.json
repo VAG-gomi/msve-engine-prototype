@@ -1,0 +1,37 @@
+{
+  "experimental": true,
+  "admission": "ACCEPTED",
+  "admission_notes": [],
+  "claim_id": "401a3581fb537de3bb7a476f4ca100d9b18434869b478fdb8c78d88ad2ec2f90",
+  "claim_kind": "holds",
+  "proposition": "for all integers x with 0 <= x <= 10, x + 1 > x",
+  "spec_version": "0.8.8.1",
+  "semantic_result": {
+    "variant": "HOLDS"
+  },
+  "solver_observation": {
+    "tool": "z3",
+    "version": "5.1.0",
+    "query_id": "87016dc55d6e84fd408af1925caa849eaa9a31f381630815a1c37f4a485a5ed5",
+    "invocation_id": "ef79bce45af7e8ca61d25da65c514268903bc5b3515a1bd4b89420432235e755",
+    "outcome": "UNSAT",
+    "elapsed_ms": 0
+  },
+  "assurance_required": null,
+  "assurance_achieved": "SOLVER_BACKED",
+  "assurance_weak": false,
+  "assurance_notes": [],
+  "assumptions_unverified": [
+    "integer arithmetic is consistent"
+  ],
+  "evidence": {},
+  "verification_records": [],
+  "discrepancies": [],
+  "provenance": {
+    "spec": "candidate/0.8.8.1/MSVE_DESIGN_SPEC_v0.8.md",
+    "spec_sha256": "dbc610c3a97d7107ab0f4de499b240e243f45c49b56f0a1855b7333c80cb7782",
+    "rulings": "decision-ledger/MSVE_BRAINSTORM_DECISION_LEDGER.csv (DEC-008..DEC-016, DEC-025)",
+    "prototype": "MSVE-WO-1.0 exploratory prototype v0.1.0-proto"
+  },
+  "produced_at": "2026-10-10T06:33:43Z"
+}

@@ -1,0 +1,43 @@
+{
+  "experimental": true,
+  "admission": "ACCEPTED",
+  "admission_notes": [
+    "derive/prove: solver outcomes are diagnostic only per \u00a7E.5"
+  ],
+  "claim_id": "9478cbdd8cb74ccb8e2a8fd8fef1fc5e43affc56e60281f48e9bae5ccc60c95a",
+  "claim_kind": "prove",
+  "proposition": "1000003 is composite (has a nontrivial factorization)",
+  "spec_version": "0.8.8.1",
+  "semantic_result": {
+    "variant": "INCONCLUSIVE",
+    "reason": "solver outcome UNKNOWN for kind 'prove'"
+  },
+  "solver_observation": {
+    "tool": "z3",
+    "version": "5.1.0",
+    "query_id": "bb97e5763977ad1b2bd51de450a96f54a4b018599babb98dc2d3db70fa5bd13e",
+    "invocation_id": "5f9af8eff2b5f897f390677cdd7688c05411edfb67e49df7b11bffc263b32626",
+    "outcome": "UNKNOWN",
+    "elapsed_ms": 5001,
+    "reason": "timeout"
+  },
+  "assurance_required": null,
+  "assurance_achieved": "SOLVER_BACKED",
+  "assurance_weak": true,
+  "assurance_notes": [
+    "D1 weak chain: UNKNOWN+INCONCLUSIVE qualifies for weak SOLVER_BACKED; not a proof, not a positive conclusion"
+  ],
+  "assumptions_unverified": [
+    "integer arithmetic is consistent"
+  ],
+  "evidence": {},
+  "verification_records": [],
+  "discrepancies": [],
+  "provenance": {
+    "spec": "candidate/0.8.8.1/MSVE_DESIGN_SPEC_v0.8.md",
+    "spec_sha256": "dbc610c3a97d7107ab0f4de499b240e243f45c49b56f0a1855b7333c80cb7782",
+    "rulings": "decision-ledger/MSVE_BRAINSTORM_DECISION_LEDGER.csv (DEC-008..DEC-016, DEC-025)",
+    "prototype": "MSVE-WO-1.0 exploratory prototype v0.1.0-proto"
+  },
+  "produced_at": "2026-10-10T06:40:59Z"
+}

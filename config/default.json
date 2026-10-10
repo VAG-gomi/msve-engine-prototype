@@ -1,0 +1,10 @@
+{
+  "max_assumptions": 16,
+  "max_assertions": 64,
+  "max_declarations": 16,
+  "max_verification_records": 2,
+  "max_descriptors": 2,
+  "max_invocations": 2,
+  "solver_timeout_ms": 5000,
+  "checker_enumeration_bound": 5
+}
