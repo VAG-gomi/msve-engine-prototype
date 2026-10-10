@@ -116,11 +116,25 @@ def award(kind, outcome, semantic_variant, evidence, claim_id, basis_ask,
                 "INDEPENDENT_RECOMPUTE requires a recompute record with agrees=true "
                 "from the independent checker core",
             )
-        # Complete binding (WO-1.4): the record must match the current
-        # execution on every contract-required field — claim ID, query ID,
-        # checker identity, checker version, and configured enumeration
-        # bound. The pipeline quarantines caller-supplied records, but
-        # award() does not rely on that alone.
+        # Fail closed (WO-1.5): the expected enumeration bound is required.
+        # Omitting it must not grant the basis.
+        if expected_bound is None:
+            raise MSVEError(
+                "EVIDENCE_MISSING",
+                "INDEPENDENT_RECOMPUTE requires an expected enumeration bound; "
+                "refusing without one",
+            )
+        # Complete binding: the record must match the current execution on
+        # every contract-required field — claim ID, query ID, checker
+        # identity, checker version, and enumeration bound (missing and
+        # mismatched both rejected). The pipeline quarantines
+        # caller-supplied records, but award() does not rely on that alone.
+        #
+        # Provenance note: field matching establishes CONSISTENCY, not
+        # provenance. The trusted source of recomputation records is the
+        # pipeline's controlled checker execution; at this direct-function
+        # boundary a perfectly consistent fabricated record is
+        # indistinguishable from a genuine one.
         obs = evidence.get("solver_observation") or {}
         mismatches = []
         if rec.get("claim_id") != claim_id:
@@ -131,7 +145,7 @@ def award(kind, outcome, semantic_variant, evidence, claim_id, basis_ask,
             mismatches.append("checker identity")
         if rec.get("checker_version") != CHECKER_VERSION:
             mismatches.append("checker version")
-        if expected_bound is not None and rec.get("bound") != expected_bound:
+        if rec.get("bound") != expected_bound:
             mismatches.append("enumeration bound")
         if mismatches:
             raise MSVEError(

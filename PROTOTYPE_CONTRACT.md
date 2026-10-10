@@ -126,11 +126,18 @@ Config values are range-validated at load; invalid config → startup error.
   quarantined transparently. (Same refusal class as `KERNEL_PROOF`.)
 - `INDEPENDENT_RECOMPUTE`: requires a Core B agreement record (D4)
   generated from the current execution and bound to claim_id, query_id,
-  checker identity/version and configured bound. Caller-supplied
+  checker identity/version and configured bound — the expected bound is
+  **required** (fail closed; omitting it refuses the basis). Caller-supplied
   `evidence.recompute` is quarantined, never trusted. If Core B does not
   confirm, the disagreement is **recorded** in the typed result's
   `discrepancies` and the basis is withheld — the observation-derived
   semantic is preserved, nothing is raised away.
+- **Provenance limit:** field matching establishes *consistency*, not
+  provenance. The trusted source of recomputation records is the
+  pipeline's controlled checker execution. At the direct `award()`
+  boundary, a perfectly consistent fabricated record is indistinguishable
+  from a genuine one — the binding checks narrow the forgery surface but
+  do not prove origin.
 - `KERNEL_PROOF`: never awarded (no kernel in prototype) → UNSUPPORTED.
 - Attempting any basis without its evidence → explicit rejection, not a
   silent downgrade.

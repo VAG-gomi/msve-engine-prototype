@@ -103,3 +103,12 @@ Fresh-venv procedure above reproduces 54/54. Golden vectors in
 - Full suite: **94 passed, 0 failed**.
   Log: `logs/test_run_2026-10-10_wo14.log`.
 - Full detail: `CORRECTION_REPORT_WO14.md`.
+
+## Addendum 2026-10-10 — MSVE-WO-1.5
+
+- New: 2 binding tests (expected_bound omitted fails closed; record bound omitted).
+- Fix: INDEPENDENT_RECOMPUTE requires expected_bound (fail closed); record bound
+  always compared; provenance limitation documented (consistency ≠ provenance).
+- Full suite: **96 passed, 0 failed**.
+  Log: `logs/test_run_2026-10-10_wo15.log`.
+- Full detail: `CORRECTION_REPORT_WO15.md`.

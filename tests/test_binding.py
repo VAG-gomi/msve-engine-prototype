@@ -1,7 +1,8 @@
-"""MSVE-WO-1.4: complete recomputation binding at the award() boundary.
+"""MSVE-WO-1.4/WO-1.5: complete recomputation binding at the award() boundary.
 
 Every contract-required binding field is checked directly: claim ID,
 query ID, checker identity, checker version, enumeration bound.
+WO-1.5: the expected bound is REQUIRED — omitting it fails closed.
 """
 import pytest
 
@@ -28,6 +29,24 @@ def test_binding_ok_current_run_record():
     r = asr.award("holds", "SAT", "VIOLATED", _ev(_record()), "cid",
                   "INDEPENDENT_RECOMPUTE", expected_bound=BOUND)
     assert r["basis"] == "INDEPENDENT_RECOMPUTE"
+
+
+def test_expected_bound_omitted_fails_closed():
+    # WO-1.5: omitting expected_bound must not grant the basis
+    with pytest.raises(MSVEError) as e:
+        asr.award("holds", "SAT", "VIOLATED", _ev(_record()), "cid",
+                  "INDEPENDENT_RECOMPUTE")
+    assert e.value.code == "EVIDENCE_MISSING"
+    assert "expected enumeration bound" in str(e.value)
+
+
+def test_record_bound_omitted_rejected():
+    rec = _record()
+    del rec["bound"]
+    with pytest.raises(MSVEError) as e:
+        asr.award("holds", "SAT", "VIOLATED", _ev(rec), "cid",
+                  "INDEPENDENT_RECOMPUTE", expected_bound=BOUND)
+    assert "enumeration bound" in str(e.value)
 
 
 def test_binding_rejects_fabricated_checker_identity():
