@@ -17,18 +17,26 @@ def run(query, timeout_ms, invocation_id):
                   elapsed_ms, model (optional), reason (for unknown)}.
     outcome in {SAT, UNSAT, UNKNOWN}.
     """
+    qid = queries.query_id(query)
+
+    # Defensive boundary: denotation and solver construction failures are
+    # reported as SOLVER_EXECUTION_FAILED, never disguised as UNKNOWN.
+    # (Malformed input is rejected earlier by queries.validate with
+    # MALFORMED_INPUT; this catches unexpected Z3-side failures.)
     try:
         zvars, zasserts = queries.denote(query)
     except MSVEError:
         raise
     except Exception as e:  # pragma: no cover - defensive
         raise MSVEError("QUERY_DENOTATION_FAILED", f"denotation failed: {e}")
+    try:
+        solver = z3.Solver()
+        solver.set("timeout", int(timeout_ms))
+        for a in zasserts:
+            solver.add(a)
+    except Exception as e:
+        raise MSVEError("SOLVER_EXECUTION_FAILED", f"solver construction failed: {e}")
 
-    qid = queries.query_id(query)
-    solver = z3.Solver()
-    solver.set("timeout", int(timeout_ms))
-    for a in zasserts:
-        solver.add(a)
     t0 = time.monotonic()
     try:
         res = solver.check()

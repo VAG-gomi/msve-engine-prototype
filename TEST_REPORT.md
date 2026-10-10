@@ -84,3 +84,13 @@ Fresh-venv procedure above reproduces 54/54. Golden vectors in
 - Full suite: **65 passed, 0 failed**.
   Log: `logs/test_run_2026-10-10_wo12.log`.
 - Full detail: `CHECKER_XVAL_REPORT.md`.
+
+## Addendum 2026-10-10 — MSVE-WO-1.3
+
+- New: `tests/test_evidence_integrity.py` (4), `tests/test_wo13_hardening.py` (20).
+- Fixes: recompute evidence bypass closed (quarantine + execution binding);
+  D2 enforced at assurance boundary; Boolean assertions required;
+  claim/query link labelled UNVERIFIED on every result.
+- Full suite: **89 passed, 0 failed**.
+  Log: `logs/test_run_2026-10-10_wo13.log`.
+- Full detail: `CORRECTION_REPORT_WO13.md`.

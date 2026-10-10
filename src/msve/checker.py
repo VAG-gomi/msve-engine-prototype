@@ -21,6 +21,9 @@ import itertools
 from . import queries
 from .errors import MSVEError
 
+CHECKER_ID = "core-b"
+CHECKER_VERSION = "0.1.0-proto"
+
 
 def _eval(e, env):
     if isinstance(e, bool):

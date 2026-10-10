@@ -33,6 +33,14 @@ Top-level JSON object:
 evidence is requested; otherwise the claim is processed without solver
 observation (recorded as underspecified for solver-backed assurance).
 
+**Input evidence policy:** caller-supplied `evidence.recompute` records are
+**never trusted**. The pipeline quarantines them transparently (visible in
+`quarantined_input_evidence`, never silently dropped) and only a recompute
+record generated from the *current* Core B execution — bound to the
+claim_id, query_id, checker identity/version and configured bound — can
+satisfy `INDEPENDENT_RECOMPUTE`. A supplied `agrees: true` cannot override
+a failed corroboration.
+
 ## 2. Admission verdicts
 
 - **ACCEPTED** — well-formed, in-scope, within capacity.
@@ -124,3 +132,27 @@ Config values are range-validated at load; invalid config → startup error.
 All seven kinds' solver-outcome interpretations; KERNEL_PROOF;
 assumption verification; query synthesis; non-integer sorts; spec
 versions other than `0.8.8.1`; any claim that MSVE is complete.
+
+## 10. Claim/query boundary (D3 limitation — read before trusting output)
+
+The engine solves a **formal query** (`msve-arith-v1`, §3). It does not
+establish any correspondence between that query and the claim's
+natural-language `proposition`. Concretely:
+
+- **Formally represented and solved:** the denotation of the `query`
+  object into Z3 (conjunction of Boolean assertions over declared sorts).
+- **Relationship established between claim text and query:** **none.**
+  The `proposition` is free text; the engine never parses it, never
+  checks it against the query, and never proves the query formalizes it.
+  A correct solver verdict on the query does not verify the prose claim.
+- **Assumptions:** recorded verbatim as strings; not interpreted, not
+  verified, not fed to the solver. Depending on a false assumption is a
+  user error the engine cannot detect.
+- **What the output claims:** every typed result carries
+  `"claim_query_link": "UNVERIFIED"` with an explanatory note. The
+  `semantic_result` describes **the query outcome only** (e.g. the
+  negation was UNSAT), never "the natural-language proposition is true".
+
+Do not present an MSVE result as verification of a natural-language
+mathematical statement. The verified correspondence between prose claim
+and formal query is future design work, explicitly out of scope here.

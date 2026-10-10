@@ -17,6 +17,10 @@ from .errors import MSVEError
 
 
 def outcome_compatible(kind, outcome, semantic_variant):
+    # D2 first: undefined interpretations can never justify SOLVER_BACKED,
+    # including via the UNKNOWN row below.
+    if kind in SEVEN_KINDS:
+        return False
     if kind == "holds":
         return (outcome == "UNSAT" and semantic_variant == "HOLDS") or (
             outcome == "SAT" and semantic_variant == "VIOLATED"
@@ -25,8 +29,6 @@ def outcome_compatible(kind, outcome, semantic_variant):
         return semantic_variant == "INCONCLUSIVE"
     if outcome == "UNKNOWN":
         return semantic_variant == "INCONCLUSIVE"
-    if kind in SEVEN_KINDS:
-        return False  # D2: undefined interpretations cannot justify SOLVER_BACKED
     return False
 
 
@@ -64,6 +66,14 @@ def award(kind, outcome, semantic_variant, evidence, claim_id, basis_ask):
             raise MSVEError("EVIDENCE_MISSING", "SOLVER_BACKED requires a linked solver observation")
         if obs.get("outcome") != outcome:
             raise MSVEError("EVIDENCE_MISSING", "observation outcome does not match executed outcome")
+        # D2 guard (defense in depth; admission also blocks): the D1
+        # exception below must never grant SOLVER_BACKED for the seven
+        # undefined kinds.
+        if kind in SEVEN_KINDS:
+            raise MSVEError(
+                "EVIDENCE_MISSING",
+                f"kind {kind!r}: interpretation undefined (D2); SOLVER_BACKED denied",
+            )
         # D1 weak chain
         if outcome == "UNKNOWN" and semantic_variant == "INCONCLUSIVE":
             notes.append(
@@ -105,6 +115,17 @@ def award(kind, outcome, semantic_variant, evidence, claim_id, basis_ask):
                 "EVIDENCE_MISSING",
                 "INDEPENDENT_RECOMPUTE requires a recompute record with agrees=true "
                 "from the independent checker core",
+            )
+        # binding (defense in depth): the record must come from the current
+        # execution — claim_id, query_id, checker identity and bound must match.
+        # Caller-supplied records are quarantined by the pipeline and never
+        # reach this point, but award() does not rely on that alone.
+        obs = evidence.get("solver_observation") or {}
+        if rec.get("claim_id") != claim_id or rec.get("query_id") != obs.get("query_id"):
+            raise MSVEError(
+                "EVIDENCE_MISSING",
+                "recompute record is not bound to the current claim/query execution; "
+                "INDEPENDENT_RECOMPUTE denied",
             )
         notes.append(f"independent checker {rec.get('checker')!r} agrees (record {rec.get('record_ref')})")
         return {"basis": "INDEPENDENT_RECOMPUTE", "weak": False, "notes": notes}

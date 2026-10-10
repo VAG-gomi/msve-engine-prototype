@@ -32,6 +32,7 @@ def run(doc, cfg=None):
     claim = doc["claim"]
     evidence = doc.get("evidence", {})
     discrepancies = []
+    quarantined = []
 
     # 1. admission
     verdict, notes = adm.admit(doc, cfg)
@@ -51,6 +52,19 @@ def run(doc, cfg=None):
     }
     cid = ident.claim_id(descriptor)
 
+    # Input policy (applies on all paths): caller-supplied
+    # evidence.recompute records are NEVER trusted. Quarantine them
+    # transparently; only a record generated from the CURRENT checker
+    # execution can satisfy award().
+    evidence = dict(evidence)
+    if "recompute" in evidence:
+        quarantined.append({
+            "field": "evidence.recompute",
+            "reason": "caller-supplied recompute records are not trusted; "
+                      "only current-execution checker records are used",
+            "record": evidence.pop("recompute"),
+        })
+
     # UNSUPPORTED / UNDERSPECIFIED: record the verdict explicitly, award nothing
     if verdict in ("UNSUPPORTED", "UNDERSPECIFIED"):
         return resmod.build(
@@ -64,6 +78,7 @@ def run(doc, cfg=None):
             assurance={"basis": None, "weak": False, "notes": notes},
             evidence={},
             discrepancies=[],
+            quarantined_input_evidence=quarantined,
             provenance=dict(ARCHIVAL),
         )
 
@@ -75,7 +90,6 @@ def run(doc, cfg=None):
         inv_id = _invocation_id(cid, qid)
         check_limit(cfg, "max_invocations", 1, "solver invocations")
         solver_obs = solv.run(query, cfg["solver_timeout_ms"], inv_id)
-        evidence = dict(evidence)
         evidence["solver_observation"] = solver_obs
 
     outcome = solver_obs["outcome"] if solver_obs else None
@@ -97,17 +111,25 @@ def run(doc, cfg=None):
             semantic["reason"] = "kind interpretation undefined (D2); observation recorded only"
 
     # 5. independent recompute check (D4) — run core B when asked.
-    # Disagreement is RECORDED in the typed result (not raised away):
-    # the observation-derived semantic is preserved, the discrepancy is
-    # explicit, and no assurance basis is awarded.
+    # Input policy: caller-supplied evidence.recompute records were already
+    # quarantined above (never trusted). Only a record generated from the
+    # CURRENT checker execution — bound to claim_id, query_id, checker
+    # identity/version and bound — can satisfy award(). Disagreement is
+    # RECORDED in the typed result: the observation-derived semantic is
+    # preserved, the discrepancy is explicit, and no basis is awarded.
     basis_ask = doc.get("assurance_ask")
     if basis_ask == "INDEPENDENT_RECOMPUTE" and query is not None and solver_obs:
+        qid = queries.query_id(query)
         ok, why = checker.agrees_with_solver(query, outcome, cfg["checker_enumeration_bound"])
         if ok:
             evidence["recompute"] = {
-                "checker": "core-b",
+                "checker": checker.CHECKER_ID,
+                "checker_version": checker.CHECKER_VERSION,
                 "agrees": True,
-                "record_ref": f"core-b:{queries.query_id(query)[:16]}",
+                "claim_id": cid,
+                "query_id": qid,
+                "bound": cfg["checker_enumeration_bound"],
+                "record_ref": f"core-b:{qid[:16]}",
                 "note": why,
             }
         else:
@@ -138,6 +160,7 @@ def run(doc, cfg=None):
         assurance=assurance,
         evidence={k: v for k, v in evidence.items() if k != "solver_observation"},
         discrepancies=discrepancies,
+        quarantined_input_evidence=quarantined,
         provenance=dict(ARCHIVAL),
     )
 

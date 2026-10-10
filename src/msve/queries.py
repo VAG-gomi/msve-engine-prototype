@@ -51,8 +51,18 @@ def validate(query):
             raise MSVEError("MALFORMED_INPUT", f"bad name: {d['name']!r}")
         sig[d["name"]] = d["sort"]
     for a in assertions:
-        _check_expr(a, sig)
+        t = _check_expr(a, sig)
+        if t != "Bool":
+            raise MSVEError(
+                "MALFORMED_INPUT",
+                f"top-level assertion must have Boolean type, got {t}: {_short(a)}",
+            )
     return sig
+
+
+def _short(e):
+    s = repr(e)
+    return s if len(s) <= 80 else s[:77] + "..."
 
 
 def _check_expr(e, sig):

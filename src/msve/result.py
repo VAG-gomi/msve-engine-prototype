@@ -6,7 +6,7 @@ import time
 
 def build(admission_verdict, admission_notes, descriptor, claim_id_val,
           semantic_result, solver_observation, assurance, evidence,
-          discrepancies, provenance):
+          discrepancies, provenance, quarantined_input_evidence=None):
     result = {
         "experimental": True,
         "admission": admission_verdict,
@@ -15,6 +15,16 @@ def build(admission_verdict, admission_notes, descriptor, claim_id_val,
         "claim_kind": descriptor["kind"],
         "proposition": descriptor["proposition"],
         "spec_version": descriptor["spec_version"],
+        # D3 boundary (see PROTOTYPE_CONTRACT.md §10): the engine solves the
+        # formal query; it does NOT establish that the query represents the
+        # natural-language proposition. The semantic result describes the
+        # query outcome only.
+        "claim_query_link": "UNVERIFIED",
+        "claim_query_link_note": (
+            "The solver decided the formal msve-arith-v1 query. No verified "
+            "correspondence between the natural-language proposition and the "
+            "formal query is established by this engine."
+        ),
         "semantic_result": semantic_result,
         "solver_observation": solver_observation,
         "assurance_required": descriptor.get("assurance_required"),
@@ -23,6 +33,7 @@ def build(admission_verdict, admission_notes, descriptor, claim_id_val,
         "assurance_notes": assurance["notes"],
         "assumptions_unverified": descriptor["assumptions"],
         "evidence": evidence or {},
+        "quarantined_input_evidence": quarantined_input_evidence or [],
         "verification_records": [],
         "discrepancies": discrepancies,
         "provenance": provenance,
