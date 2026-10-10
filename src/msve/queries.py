@@ -75,8 +75,14 @@ def _check_expr(e, sig):
             raise MSVEError("MALFORMED_INPUT", f"unbound name: {e!r}")
         return sig[e]
     if not isinstance(e, list) or not e:
-        raise MSVEError("MALFORMED_INPUT", f"bad expression: {e!r}")
-    op, args = e[0], e[1:]
+        raise MSVEError("MALFORMED_INPUT", f"bad expression: {_short(e)}")
+    op = e[0]
+    # operator must be a string: a list/dict/int operator would raise
+    # TypeError on the set-membership checks below instead of a clean
+    # MSVE input error.
+    if not isinstance(op, str):
+        raise MSVEError("MALFORMED_INPUT", f"operator must be a string: {_short(op)}")
+    args = e[1:]
     if op in _BINOP_INT:
         if len(args) != 2:
             raise MSVEError("MALFORMED_INPUT", f"{op} needs 2 args")

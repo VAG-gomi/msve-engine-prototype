@@ -49,6 +49,13 @@ def validate_document(doc):
     ar = claim.get("assurance_required")
     if ar is not None and ar not in ASSURANCE_LEVELS:
         raise MSVEError("MALFORMED_INPUT", f"bad assurance_required: {ar!r}")
+    # query shape is validated here (dict or absent) so admission and the
+    # pipeline never call .get() on a scalar/list. Full DSL validation
+    # happens in queries.validate() via the solver path.
+    q = claim.get("query")
+    if q is not None and not isinstance(q, dict):
+        raise MSVEError("MALFORMED_INPUT",
+                        f"query must be an object, got {type(q).__name__}")
     # assurance_ask selects the specific basis the engine should attempt.
     # It is top-level (not inside claim) and validated here; admission and
     # award() act on it. claim.assurance_required is a recorded requirement

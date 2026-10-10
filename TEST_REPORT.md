@@ -122,3 +122,12 @@ Fresh-venv procedure above reproduces 54/54. Golden vectors in
 - New: `tests/test_schema_alignment.py` (8).
 - Full suite: **104 passed, 0 failed**.
   Log: `logs/test_run_2026-10-10_schema.log`.
+
+## Addendum 2026-10-10 — Interface hardening (owner finding #2)
+
+- Fixed: non-dict `claim.query` rejected at decode (was AttributeError in
+  admission); non-string operators rejected in the expression validator
+  (was TypeError on set-membership).
+- New: `tests/test_interface_hardening.py` (10).
+- Full suite: **114 passed, 0 failed**.
+  Log: `logs/test_run_2026-10-10_hardening.log`.
