@@ -49,6 +49,14 @@ def validate_document(doc):
     ar = claim.get("assurance_required")
     if ar is not None and ar not in ASSURANCE_LEVELS:
         raise MSVEError("MALFORMED_INPUT", f"bad assurance_required: {ar!r}")
+    # assurance_ask selects the specific basis the engine should attempt.
+    # It is top-level (not inside claim) and validated here; admission and
+    # award() act on it. claim.assurance_required is a recorded requirement
+    # level only (see PROTOTYPE_CONTRACT.md §1).
+    ask = doc.get("assurance_ask")
+    if ask is not None and ask not in ("SOLVER_BACKED", "TEST_BACKED",
+                                       "INDEPENDENT_RECOMPUTE", "KERNEL_PROOF"):
+        raise MSVEError("MALFORMED_INPUT", f"bad assurance_ask: {ask!r}")
     ev = doc.get("evidence", {})
     if not isinstance(ev, dict):
         raise MSVEError("MALFORMED_INPUT", "evidence must be an object")

@@ -11,6 +11,7 @@ Top-level JSON object:
 ```json
 {
   "spec_version": "0.8.8.1",
+  "assurance_ask": "SOLVER_BACKED | TEST_BACKED | INDEPENDENT_RECOMPUTE | KERNEL_PROOF | null",
   "claim": {
     "kind": "holds | derive | prove | no_solution | contradiction | unique_under_projection | violated | underdetermined | disproved | artifact_constructed",
     "proposition": "string (canonical claim text)",
@@ -25,9 +26,23 @@ Top-level JSON object:
     "recompute": {"checker": "string", "agrees": true, "record_ref": "string"},
     "proof_artifact": null
   },
-  "config": { "capacity": { ... } }
+  "config": { "capacity": { "max_assumptions": 16, "...": "..." } }
 }
 ```
+
+**Field semantics (read carefully — the schema alone does not imply behavior):**
+
+- `assurance_ask` (top-level): the specific assurance basis the engine
+  should *attempt*. This drives admission and awarding. Validated against
+  the four known bases; anything else is `MALFORMED_INPUT`.
+- `claim.assurance_required`: a *recorded requirement level*
+  (`LEVEL_A`/`LEVEL_B`), reported in the output. The prototype records it
+  but does not act on it — basis selection uses `assurance_ask`.
+- `config.capacity`: per-run capacity overrides. Honored by the engine:
+  merged over defaults and **range-validated** by the same rules as
+  `config/default.json` (out-of-range → `INVALID_CONFIG`, startup-style
+  rejection). When calling the Python API with an explicit config object,
+  input-embedded config is ignored (the explicit object wins).
 
 `query` is required for kinds `holds`, `derive`, `prove` when solver
 evidence is requested; otherwise the claim is processed without solver

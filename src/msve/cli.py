@@ -17,13 +17,10 @@ def main(argv):
     except OSError as e:
         print(json.dumps({"error": "INPUT_READ_FAILED", "message": str(e)}))
         return 2
+    # config comes from the input document's config.capacity (validated
+    # overrides over defaults); no separate config file is loaded here.
     try:
-        cfg = load_config()
-    except MSVEError as e:
-        print(json.dumps({"error": e.code, "message": str(e)}))
-        return 2
-    try:
-        result = run_text(text, cfg)
+        result = run_text(text)
     except MSVEError as e:
         print(json.dumps({"error": e.code, "message": str(e), "details": e.details,
                           "experimental": True}))

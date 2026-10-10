@@ -112,3 +112,13 @@ Fresh-venv procedure above reproduces 54/54. Golden vectors in
 - Full suite: **96 passed, 0 failed**.
   Log: `logs/test_run_2026-10-10_wo15.log`.
 - Full detail: `CORRECTION_REPORT_WO15.md`.
+
+## Addendum 2026-10-10 — Schema/implementation alignment (owner finding)
+
+- Fixed: input-embedded `config.capacity` is now honored (range-validated
+  overrides over defaults) instead of silently ignored; `assurance_ask`
+  documented as the top-level validated basis-selection field;
+  `claim.assurance_required` documented as recorded-only.
+- New: `tests/test_schema_alignment.py` (8).
+- Full suite: **104 passed, 0 failed**.
+  Log: `logs/test_run_2026-10-10_schema.log`.

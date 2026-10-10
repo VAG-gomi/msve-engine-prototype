@@ -26,9 +26,21 @@ def _invocation_id(claim_id_val, qid):
 
 def run(doc, cfg=None):
     """Execute the full pipeline on a decoded+validated document dict.
-    Returns the typed result dict. Raises MSVEError on rejection."""
-    cfg = cfg or load_config()
+    Returns the typed result dict. Raises MSVEError on rejection.
+
+    Configuration (D5): if cfg is given explicitly it is used as-is.
+    Otherwise it is built from defaults plus the input document's
+    config.capacity overrides, range-validated by load_config().
+    """
     doc = dec.validate_document(doc)
+    if cfg is None:
+        input_capacity = None
+        config_node = doc.get("config")
+        if config_node is not None:
+            if not isinstance(config_node, dict):
+                raise MSVEError("MALFORMED_INPUT", "'config' must be an object")
+            input_capacity = config_node.get("capacity")
+        cfg = load_config(overrides=input_capacity)
     claim = doc["claim"]
     evidence = doc.get("evidence", {})
     discrepancies = []
