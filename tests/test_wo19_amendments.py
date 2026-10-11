@@ -31,6 +31,9 @@ def test_a1_observation_bound_to_claim_query_spec():
     assert obs["claim_id"] == r["claim_id"]
     assert obs["query_id"] == query_id(q)
     assert obs["spec_version"] == d["spec_version"]
+    # Finding 2: top-level query_id matches the observation's
+    assert r["query_id"] == query_id(q)
+    assert r["query_id"] == obs["query_id"]
 
 
 def test_a1_unknown_never_holds():

@@ -21,6 +21,10 @@ ARCHIVAL = {
 
 
 def _invocation_id(claim_id_val, qid):
+    # Both operands are fixed 64-char lowercase hex (sha256). The ":"
+    # delimiter is therefore at a deterministic position (byte 64) and the
+    # parse is unique without additional framing (see spec §E.6b, 0.8.9.1).
+    assert len(claim_id_val) == 64 and len(qid) == 64
     return hashlib.sha256(f"{claim_id_val}:{qid}".encode()).hexdigest()
 
 
@@ -101,6 +105,7 @@ def run(doc, cfg=None):
 
     # 3. solver (if query present and kind uses it)
     solver_obs = None
+    qid = None
     query = claim.get("query")
     if query is not None:
         qid = queries.query_id(query)
@@ -142,7 +147,7 @@ def run(doc, cfg=None):
     basis_ask = doc.get("assurance_ask")
     if basis_ask == "INDEPENDENT_RECOMPUTE" and query is not None and solver_obs:
         qid = queries.query_id(query)
-        ok, why = checker.agrees_with_solver(query, outcome, cfg["checker_enumeration_bound"])
+        ok, why, witness = checker.agrees_with_solver(query, outcome, cfg["checker_enumeration_bound"])
         if ok:
             evidence["recompute"] = {
                 "checker": checker.CHECKER_ID,
@@ -152,6 +157,10 @@ def run(doc, cfg=None):
                 "query_id": qid,
                 "bound": cfg["checker_enumeration_bound"],
                 "record_ref": f"core-b:{qid[:16]}",
+                # Finding 3: SAT-corroboration path carries the independently
+                # generated witness, validated against the exact formal query.
+                "witness": witness,
+                "witness_validated": True,
                 "note": why,
             }
         else:
@@ -178,6 +187,7 @@ def run(doc, cfg=None):
         admission_notes=notes,
         descriptor=descriptor,
         claim_id_val=cid,
+        query_id_val=qid,
         semantic_result=semantic,
         solver_observation=solver_obs,
         assurance=assurance,

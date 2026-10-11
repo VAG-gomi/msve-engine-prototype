@@ -57,7 +57,7 @@ def test_injected_core_b_false_agreement_trust_boundary(monkeypatch):
     # a passing security claim.
     import msve.pipeline as P
     monkeypatch.setattr(P.checker, "agrees_with_solver",
-                        lambda q, o, b: (True, "INJECTED false agreement"))
+                        lambda q, o, b: (True, "INJECTED false agreement", None))
     d = doc()
     d["claim"]["query"] = holds_query(negated=True)
     d["assurance_ask"] = "INDEPENDENT_RECOMPUTE"

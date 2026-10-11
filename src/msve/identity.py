@@ -1,6 +1,6 @@
 """D6 canonical identity: msve-descriptor-1 byte-level encoding.
 
-Normative reference: candidate 0.8.9, Amendment A6 (D6).
+Normative reference: candidate 0.8.9.1, Amendment A6 (D6), Finding 4.
 
 Encoding (all integers unsigned big-endian; utf8_nfc = NFC-normalized UTF-8):
   enc_scalar(s) = b"\\x00"                            if s is None
@@ -12,6 +12,15 @@ Encoding (all integers unsigned big-endian; utf8_nfc = NFC-normalized UTF-8):
            || enc_list(assumptions)
            || enc_scalar(spec_version) || enc_scalar("msve-descriptor-1")
   claim_id = sha256(preimage), 64-char lowercase hex.
+
+Type representation: FIXED TYPED FIELD POSITIONS with mandatory
+validation, not explicit byte-level type tags. The 0x00/0x01 tag
+distinguishes null/absent from present only.
+Normalization: the encoder normalises to NFC; non-NFC input is
+normalised, not rejected. Recorded fields are stored verbatim.
+Null/empty/absent: kind/proposition/spec_version required non-empty;
+goal_ref/inputs_ref may be null or non-empty string ("" != null);
+assumptions is a required list of non-null strings.
 
 The trailing encoding-version field binds the identity to this version.
 Transition: identities computed by the pre-A6 prototype encoding are

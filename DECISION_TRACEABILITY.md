@@ -19,7 +19,7 @@ locations, tests, and residual gaps.
 
 ## Archival source links
 
-- Normative spec: `candidate/0.8.9/MSVE_DESIGN_SPEC_v0.8.9.md` (candidate, owner review required)
+- Normative spec: `candidate/0.8.9.1/MSVE_DESIGN_SPEC_v0.8.9.1.md` (correction candidate, owner review required)
 - Formal model: `candidate/0.8.9/audit_model_0889.py` (candidate, owner review required)
 - D3 fragment schema: `candidate/0.8.9/D3_SOLVER_FRAGMENT_SCHEMA.md`
 - Previous candidate preserved: `candidate/0.8.8.1/` (unmodified)

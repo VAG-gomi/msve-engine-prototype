@@ -31,13 +31,15 @@ def test_agreement_sat_sat():
     q = {"language": "msve-arith-v1",
          "declarations": [{"name": "x", "sort": "Int"}],
          "assertions": [[">", "x", 0]]}
-    ok, why = checker.agrees_with_solver(q, "SAT", bound=5)
+    ok, why, witness = checker.agrees_with_solver(q, "SAT", bound=5)
     assert ok is True
+    assert witness is not None
+    assert checker.validate_witness(q, witness)
 
 
 def test_no_agreement_for_unsat():
     q = holds_query(negated=True)
-    ok, why = checker.agrees_with_solver(q, "UNSAT", bound=5)
+    ok, why, witness = checker.agrees_with_solver(q, "UNSAT", bound=5)
     assert ok is False
     assert "never" in why or "UNSAT" in why
 

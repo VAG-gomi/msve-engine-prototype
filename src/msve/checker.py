@@ -90,17 +90,48 @@ def check(query, bound):
             "note": "no satisfying assignment within enumeration bound; search incomplete"}
 
 
+def validate_witness(query, witness):
+    """Check a witness assignment against the exact formal query.
+
+    Returns True iff every assertion evaluates to True under the witness.
+    Finding 3 (0.8.9.1): SAT corroboration requires an independently
+    generated witness checked against the exact formal query.
+    """
+    sig = queries.validate(query)
+    if not isinstance(witness, dict):
+        return False
+    for d in query.get("declarations", []):
+        name, sort = d["name"], d["sort"]
+        if name not in witness:
+            return False
+        v = witness[name]
+        if sort == "Int" and not (isinstance(v, int) and not isinstance(v, bool)):
+            return False
+        if sort == "Bool" and not isinstance(v, bool):
+            return False
+    try:
+        return all(_eval(a, witness) is True for a in query["assertions"])
+    except Exception:
+        return False
+
+
 def agrees_with_solver(query, solver_outcome, bound):
     """Independent agreement check for INDEPENDENT_RECOMPUTE.
 
+    Returns (ok, reason, witness_or_None). The witness is validated
+    against the exact formal query before agreement (Finding 3).
+
     Agreement: core B SAT + solver SAT (witnesses need not match);
     core B cannot confirm UNSAT, so solver UNSAT is NEVER confirmed by
-    core B -> returns (False, reason). This is conservative by design.
+    core B -> returns (False, reason, None). This is conservative by design.
     """
     res = check(query, bound)
     if res["verdict"] == "SAT" and solver_outcome == "SAT":
-        return True, "core B independently found a satisfying assignment"
+        witness = res["witness"]
+        if validate_witness(query, witness):
+            return True, "core B independently found a satisfying assignment", witness
+        return False, "core B witness failed validation against the query", None
     return False, (
         f"no independent confirmation (core B: {res['verdict']}, solver: {solver_outcome}); "
         "core B confirms SAT only, never UNSAT"
-    )
+    ), None

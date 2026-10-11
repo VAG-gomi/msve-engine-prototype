@@ -9,6 +9,14 @@ Normative reference: candidate 0.8.9, Amendment A6 (D6).
 - **Scalar encoding:** `enc_scalar(s) = 0x00` if `s` is null/absent;
   otherwise `0x01 || u32be(len(bytes)) || bytes`. The tag byte
   distinguishes null from empty string.
+- **Type representation:** types are carried by FIXED TYPED FIELD
+  POSITIONS with mandatory validation, not by explicit byte-level type
+  tags. The `0x00`/`0x01` tag distinguishes null/absent from present
+  ONLY. A non-string value at a string position is a validation failure.
+- **Normalization:** the encoder NORMALISES to NFC before hashing;
+  non-NFC input is normalised, not rejected. Recorded descriptor fields
+  are stored verbatim (byte-preservation); the identity is computed over
+  the normalised encoding.
 - **List encoding:** `enc_list(items) = u32be(count) || enc_scalar(i_1)
   || … || enc_scalar(i_n)`, with items sorted bytewise by encoded bytes
   before encoding. The count makes the collection boundary explicit.
@@ -19,8 +27,8 @@ Fixed field order:
 
 1. `kind` (string, required)
 2. `proposition` (string, required)
-3. `goal_ref` (string or null)
-4. `inputs_ref` (string or null)
+3. `goal_ref` (string or null; empty string distinct from null)
+4. `inputs_ref` (string or null; empty string distinct from null)
 5. `assumptions` (string list — **sorted by encoded byte string**,
    byte-wise lexicographic, before encoding; elements non-null)
 6. `spec_version` (string, required)

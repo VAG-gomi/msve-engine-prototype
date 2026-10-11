@@ -40,8 +40,11 @@ def validate_document(doc):
     if not isinstance(claim["proposition"], str):
         raise MSVEError("MALFORMED_INPUT", "proposition must be a string")
     for f in ("goal_ref", "inputs_ref"):
-        if not isinstance(claim[f], str) or not claim[f]:
-            raise MSVEError("MALFORMED_INPUT", f"{f} must be a non-empty string")
+        v = claim[f]
+        # 0.8.9.1 (Finding 4): null/absent permitted per normative A6;
+        # empty string distinct from null; non-strings rejected.
+        if v is not None and (not isinstance(v, str) or not v):
+            raise MSVEError("MALFORMED_INPUT", f"{f} must be null or a non-empty string")
     if not isinstance(claim["assumptions"], list) or not all(
         isinstance(a, str) for a in claim["assumptions"]
     ):

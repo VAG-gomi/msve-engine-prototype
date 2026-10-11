@@ -8,6 +8,7 @@
   "claim_kind": "prove",
   "proposition": "1000003 is composite (has a nontrivial factorization)",
   "spec_version": "0.8.8.1",
+  "query_id": "bb97e5763977ad1b2bd51de450a96f54a4b018599babb98dc2d3db70fa5bd13e",
   "claim_query_link": "UNVERIFIED",
   "claim_query_link_note": "The solver decided the formal msve-arith-v1 query. No verified correspondence between the natural-language proposition and the formal query is established by this engine.",
   "semantic_result": {
@@ -44,5 +45,5 @@
     "rulings": "decision-ledger/MSVE_BRAINSTORM_DECISION_LEDGER.csv (DEC-008..DEC-016, DEC-025)",
     "prototype": "MSVE-WO-1.0 exploratory prototype v0.1.0-proto"
   },
-  "produced_at": "2026-10-11T17:50:28Z"
+  "produced_at": "2026-10-11T18:07:57Z"
 }

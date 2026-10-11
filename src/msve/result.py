@@ -6,7 +6,8 @@ import time
 
 def build(admission_verdict, admission_notes, descriptor, claim_id_val,
           semantic_result, solver_observation, assurance, evidence,
-          discrepancies, provenance, quarantined_input_evidence=None):
+          discrepancies, provenance, quarantined_input_evidence=None,
+          query_id_val=None):
     result = {
         "experimental": True,
         "admission": admission_verdict,
@@ -15,6 +16,9 @@ def build(admission_verdict, admission_notes, descriptor, claim_id_val,
         "claim_kind": descriptor["kind"],
         "proposition": descriptor["proposition"],
         "spec_version": descriptor["spec_version"],
+        # Finding 2 (0.8.9.1): query_id declared on the result record,
+        # matching the solver invocation's query_id per the binding rules.
+        "query_id": query_id_val,
         # D3 boundary (see PROTOTYPE_CONTRACT.md §10): the engine solves the
         # formal query; it does NOT establish that the query represents the
         # natural-language proposition. The semantic result describes the
