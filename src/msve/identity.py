@@ -1,15 +1,27 @@
-"""D6 canonical identity: byte-level encoding and SHA-256 claim identity.
+"""D6 canonical identity: msve-descriptor-1 byte-level encoding.
 
-Rules (see ENCODING.md):
-- strings -> NFC-normalized UTF-8 bytes
-- fixed field order: kind, proposition, goal_ref, inputs_ref, assumptions, spec_version
-- each field length-prefixed with 4-byte big-endian length
-- assumptions sorted by byte string, encoded as count + elements
-- claim_id = sha256(canonical_bytes), 64-char lowercase hex
+Normative reference: candidate 0.8.9, Amendment A6 (D6).
+
+Encoding (all integers unsigned big-endian; utf8_nfc = NFC-normalized UTF-8):
+  enc_scalar(s) = b"\\x00"                            if s is None
+                = b"\\x01" + u32be(len) + utf8_nfc(s)  otherwise
+  enc_list(items) = u32be(count) + enc_scalar(i_1) + ... + enc_scalar(i_n)
+                    with items sorted bytewise by utf8_nfc bytes
+  preimage = enc_scalar(claim_kind) || enc_scalar(proposition)
+           || enc_scalar(goal_ref) || enc_scalar(inputs_ref)
+           || enc_list(assumptions)
+           || enc_scalar(spec_version) || enc_scalar("msve-descriptor-1")
+  claim_id = sha256(preimage), 64-char lowercase hex.
+
+The trailing encoding-version field binds the identity to this version.
+Transition: identities computed by the pre-A6 prototype encoding are
+historical and are never recomputed under this rule.
 """
 import hashlib
 import struct
 import unicodedata
+
+ENCODING_VERSION = "msve-descriptor-1"
 
 FIELD_ORDER = ("kind", "proposition", "goal_ref", "inputs_ref", "assumptions", "spec_version")
 
@@ -20,28 +32,35 @@ def _b(s):
     return unicodedata.normalize("NFC", s).encode("utf-8")
 
 
-def _field(b):
-    return struct.pack(">I", len(b)) + b
+def _enc_scalar(s):
+    if s is None:
+        return b"\x00"
+    b = _b(s)
+    return b"\x01" + struct.pack(">I", len(b)) + b
 
 
-def _str_list(items):
+def _enc_list(items):
     if not isinstance(items, list) or not all(isinstance(x, str) for x in items):
         raise TypeError("assumptions must be a list of strings")
     enc = sorted(_b(x) for x in items)
-    return struct.pack(">I", len(enc)) + b"".join(_field(e) for e in enc)
+    return struct.pack(">I", len(enc)) + b"".join(
+        b"\x01" + struct.pack(">I", len(e)) + e for e in enc
+    )
 
 
 def canonical_bytes(descriptor):
     """descriptor: dict with keys kind, proposition, goal_ref, inputs_ref,
-    assumptions (list), spec_version. Returns canonical bytes."""
+    assumptions (list of str), spec_version. goal_ref/inputs_ref may be None.
+    Returns the msve-descriptor-1 preimage bytes."""
     parts = []
     for key in FIELD_ORDER:
         if key not in descriptor:
             raise KeyError(f"descriptor missing field: {key}")
         if key == "assumptions":
-            parts.append(_str_list(descriptor[key]))
+            parts.append(_enc_list(descriptor[key]))
         else:
-            parts.append(_field(_b(descriptor[key])))
+            parts.append(_enc_scalar(descriptor[key]))
+    parts.append(_enc_scalar(ENCODING_VERSION))
     return b"".join(parts)
 
 

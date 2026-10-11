@@ -101,7 +101,7 @@ def test_capacity_boundary_exact():
 def test_invalid_config_rejected():
     with pytest.raises(MSVEError) as e:
         load_config(overrides={"max_assumptions": -1})
-    assert e.value.code == "INVALID_CONFIG"
+    assert e.value.code == "INVALID_INPUT"
     with pytest.raises(MSVEError):
         load_config(overrides={"max_assumptions": 999999})
 

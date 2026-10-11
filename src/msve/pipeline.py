@@ -107,6 +107,11 @@ def run(doc, cfg=None):
         inv_id = _invocation_id(cid, qid)
         check_limit(cfg, "max_invocations", 1, "solver invocations")
         solver_obs = solv.run(query, cfg["solver_timeout_ms"], inv_id)
+        # A1 binding: the observation is bound to the actual claim, query,
+        # and specification version (in addition to invocation_id, which
+        # already binds claim_id + query_id).
+        solver_obs["claim_id"] = cid
+        solver_obs["spec_version"] = doc["spec_version"]
         evidence["solver_observation"] = solver_obs
 
     outcome = solver_obs["outcome"] if solver_obs else None

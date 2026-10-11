@@ -1,94 +1,229 @@
 [
-  {
-    "name": "basic",
-    "descriptor": {
-      "kind": "holds",
-      "proposition": "x+1 > x",
-      "goal_ref": "g1",
-      "inputs_ref": "i1",
-      "assumptions": [],
-      "spec_version": "0.8.8.1"
-    },
-    "claim_id": "5c3acb6aa7ef925c92e4da13ea3574195f872c64bfa2461da16193ca4c3fe77e"
+ {
+  "name": "basic",
+  "descriptor": {
+   "kind": "holds",
+   "proposition": "x+1 > x",
+   "goal_ref": "g1",
+   "inputs_ref": "i1",
+   "assumptions": [],
+   "spec_version": "0.8.9"
   },
-  {
-    "name": "with-assumptions",
-    "descriptor": {
-      "kind": "prove",
-      "proposition": "p",
-      "goal_ref": "g",
-      "inputs_ref": "i",
-      "assumptions": [
-        "b",
-        "a"
-      ],
-      "spec_version": "0.8.8.1"
-    },
-    "claim_id": "2ce7046207cc7afdd501a9df2723d41e9c45e5539ff2d843ee717f2e1ad4ad11"
+  "claim_id": "eead1a848792f3bdf41baf0e4c33a8beec6136835eeda871d8d9f5a6c2fd7811",
+  "encoding": "msve-descriptor-1"
+ },
+ {
+  "name": "with-assumptions",
+  "descriptor": {
+   "kind": "prove",
+   "proposition": "p",
+   "goal_ref": "g",
+   "inputs_ref": "i",
+   "assumptions": [
+    "b",
+    "a"
+   ],
+   "spec_version": "0.8.9"
   },
-  {
-    "name": "pipe-in-content",
-    "descriptor": {
-      "kind": "holds",
-      "proposition": "a|b",
-      "goal_ref": "g",
-      "inputs_ref": "i",
-      "assumptions": [],
-      "spec_version": "0.8.8.1"
-    },
-    "claim_id": "4ee7544557f4e40aa4c861c5a2c507590bed8b22c42c1706599928465b999bef"
+  "claim_id": "4057513924ad2e35e1e46cdbe15bcda6e90fe3cf459d3d0450fa7384e1c2b4d7",
+  "encoding": "msve-descriptor-1"
+ },
+ {
+  "name": "pipe-in-content",
+  "descriptor": {
+   "kind": "holds",
+   "proposition": "a|b",
+   "goal_ref": "g",
+   "inputs_ref": "i",
+   "assumptions": [],
+   "spec_version": "0.8.9"
   },
-  {
-    "name": "comma-in-assumption",
-    "descriptor": {
-      "kind": "holds",
-      "proposition": "p",
-      "goal_ref": "g",
-      "inputs_ref": "i",
-      "assumptions": [
-        "x,y"
-      ],
-      "spec_version": "0.8.8.1"
-    },
-    "claim_id": "e887398650e1301353c29f1a00b6eb7798921839bcb9fb12931d76f80fcca99c"
+  "claim_id": "632e0c3f9c92ae49fdc913e8196762775f545697d8cc96e66d946b72ccb1eea9",
+  "encoding": "msve-descriptor-1"
+ },
+ {
+  "name": "comma-in-assumption",
+  "descriptor": {
+   "kind": "holds",
+   "proposition": "p",
+   "goal_ref": "g",
+   "inputs_ref": "i",
+   "assumptions": [
+    "x,y"
+   ],
+   "spec_version": "0.8.9"
   },
-  {
-    "name": "empty-proposition",
-    "descriptor": {
-      "kind": "derive",
-      "proposition": "",
-      "goal_ref": "g",
-      "inputs_ref": "i",
-      "assumptions": [],
-      "spec_version": "0.8.8.1"
-    },
-    "claim_id": "2a0c8b80061617269f6676cd933f0a770d431471ee5e8491a2c05d485a3754bb"
+  "claim_id": "8ab1a81ce056d6cbcecfec24ad6c3cfbd0c62046dcb6b86e65c518adbc85db9c",
+  "encoding": "msve-descriptor-1"
+ },
+ {
+  "name": "empty-proposition",
+  "descriptor": {
+   "kind": "derive",
+   "proposition": "",
+   "goal_ref": "g",
+   "inputs_ref": "i",
+   "assumptions": [],
+   "spec_version": "0.8.9"
   },
-  {
-    "name": "unicode",
-    "descriptor": {
-      "kind": "holds",
-      "proposition": "caf\u00e9",
-      "goal_ref": "g",
-      "inputs_ref": "i",
-      "assumptions": [],
-      "spec_version": "0.8.8.1"
-    },
-    "claim_id": "7e47f1ca9b6d56d2f8cf874ebda46527a2ecd1cae67d218bdfb009b877ed986c"
+  "claim_id": "fb142e646bb732227f0646c5170acbc6652c65100293e5e47acc8ec3ee6ce189",
+  "encoding": "msve-descriptor-1"
+ },
+ {
+  "name": "unicode",
+  "descriptor": {
+   "kind": "holds",
+   "proposition": "caf\u00e9",
+   "goal_ref": "g",
+   "inputs_ref": "i",
+   "assumptions": [],
+   "spec_version": "0.8.9"
   },
-  {
-    "name": "dup-assumptions",
-    "descriptor": {
-      "kind": "holds",
-      "proposition": "p",
-      "goal_ref": "g",
-      "inputs_ref": "i",
-      "assumptions": [
-        "a",
-        "a"
-      ],
-      "spec_version": "0.8.8.1"
-    },
-    "claim_id": "1995a5b093ba2f62556873224f1bcb305386544e1431083bd89cbe668dcb0db9"
-  }
+  "claim_id": "b081db6b2480c57245f28b43fac140daae86ef3bb8c20c74f0ca69a5786f61c3",
+  "encoding": "msve-descriptor-1"
+ },
+ {
+  "name": "dup-assumptions",
+  "descriptor": {
+   "kind": "holds",
+   "proposition": "p",
+   "goal_ref": "g",
+   "inputs_ref": "i",
+   "assumptions": [
+    "a",
+    "a"
+   ],
+   "spec_version": "0.8.9"
+  },
+  "claim_id": "e80a232810d075434a1739578d594e518f44671176e6cc247ca1489121f19c48",
+  "encoding": "msve-descriptor-1"
+ },
+ {
+  "name": "empty-assumptions",
+  "descriptor": {
+   "kind": "holds",
+   "proposition": "p",
+   "goal_ref": "g",
+   "inputs_ref": "i",
+   "assumptions": [],
+   "spec_version": "0.8.9"
+  },
+  "claim_id": "970960e62cee3d5cd5893cf859093b53e2aeb9ea20afd215711d054671d34127",
+  "encoding": "msve-descriptor-1"
+ },
+ {
+  "name": "multi-assumptions-1",
+  "descriptor": {
+   "kind": "holds",
+   "proposition": "p",
+   "goal_ref": "g",
+   "inputs_ref": "i",
+   "assumptions": [
+    "b",
+    "a"
+   ],
+   "spec_version": "0.8.9"
+  },
+  "claim_id": "3d160dd6f8695b9a8eaaf8cfc44e8dc7d42db81f85e068bb783b2e8419a48d15",
+  "encoding": "msve-descriptor-1"
+ },
+ {
+  "name": "multi-assumptions-2",
+  "descriptor": {
+   "kind": "holds",
+   "proposition": "p",
+   "goal_ref": "g",
+   "inputs_ref": "i",
+   "assumptions": [
+    "a",
+    "b"
+   ],
+   "spec_version": "0.8.9"
+  },
+  "claim_id": "3d160dd6f8695b9a8eaaf8cfc44e8dc7d42db81f85e068bb783b2e8419a48d15",
+  "encoding": "msve-descriptor-1"
+ },
+ {
+  "name": "duplicate-assumptions",
+  "descriptor": {
+   "kind": "holds",
+   "proposition": "p",
+   "goal_ref": "g",
+   "inputs_ref": "i",
+   "assumptions": [
+    "a",
+    "a"
+   ],
+   "spec_version": "0.8.9"
+  },
+  "claim_id": "e80a232810d075434a1739578d594e518f44671176e6cc247ca1489121f19c48",
+  "encoding": "msve-descriptor-1"
+ },
+ {
+  "name": "null-goal-ref",
+  "descriptor": {
+   "kind": "holds",
+   "proposition": "p",
+   "goal_ref": null,
+   "inputs_ref": "i",
+   "assumptions": [],
+   "spec_version": "0.8.9"
+  },
+  "claim_id": "36c93cffd4a2f0ec538ea04c643b7f21d6f4142e4635c4627e6a276a6afebbf9",
+  "encoding": "msve-descriptor-1"
+ },
+ {
+  "name": "empty-goal-ref",
+  "descriptor": {
+   "kind": "holds",
+   "proposition": "p",
+   "goal_ref": "",
+   "inputs_ref": "i",
+   "assumptions": [],
+   "spec_version": "0.8.9"
+  },
+  "claim_id": "ea1773274498cb407f469d24625f183ab473d6e22d6b538688740bec4476e01a",
+  "encoding": "msve-descriptor-1"
+ },
+ {
+  "name": "boundary-pipe",
+  "descriptor": {
+   "kind": "holds",
+   "proposition": "a|b",
+   "goal_ref": "g",
+   "inputs_ref": "i",
+   "assumptions": [
+    "x|y"
+   ],
+   "spec_version": "0.8.9"
+  },
+  "claim_id": "042ee4b0218182299c8e411cf197e197d7991fc1272b00a4bfd4d4fa449ab3d6",
+  "encoding": "msve-descriptor-1"
+ },
+ {
+  "name": "unicode-nfc",
+  "descriptor": {
+   "kind": "holds",
+   "proposition": "caf\u00e9",
+   "goal_ref": "g",
+   "inputs_ref": "i",
+   "assumptions": [],
+   "spec_version": "0.8.9"
+  },
+  "claim_id": "b081db6b2480c57245f28b43fac140daae86ef3bb8c20c74f0ca69a5786f61c3",
+  "encoding": "msve-descriptor-1"
+ },
+ {
+  "name": "unicode-nfd",
+  "descriptor": {
+   "kind": "holds",
+   "proposition": "cafe\u0301",
+   "goal_ref": "g",
+   "inputs_ref": "i",
+   "assumptions": [],
+   "spec_version": "0.8.9"
+  },
+  "claim_id": "b081db6b2480c57245f28b43fac140daae86ef3bb8c20c74f0ca69a5786f61c3",
+  "encoding": "msve-descriptor-1"
+ }
 ]

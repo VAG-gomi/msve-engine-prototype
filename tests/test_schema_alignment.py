@@ -32,7 +32,7 @@ def test_input_config_invalid_rejected():
     d["config"] = {"capacity": {"max_assumptions": 999999}}
     with pytest.raises(MSVEError) as e:
         _run_no_cfg(d)
-    assert e.value.code == "INVALID_CONFIG"
+    assert e.value.code == "INVALID_INPUT"
 
 
 def test_input_config_not_object_rejected():

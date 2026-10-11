@@ -40,8 +40,9 @@ Top-level JSON object:
   but does not act on it — basis selection uses `assurance_ask`.
 - `config.capacity`: per-run capacity overrides. Honored by the engine:
   merged over defaults and **range-validated** by the same rules as
-  `config/default.json` (out-of-range → `INVALID_CONFIG`, startup-style
-  rejection). When calling the Python API with an explicit config object,
+  `config/default.json` (out-of-range → `INVALID_INPUT` with reason
+  `capacity-out-of-range`, startup-style rejection; candidate 0.8.9 A5
+  reconciles the former prototype code `INVALID_CONFIG`, now retired). When calling the Python API with an explicit config object,
   input-embedded config is ignored (the explicit object wins).
 
 `query` is required for kinds `holds`, `derive`, `prove` when solver
@@ -102,21 +103,23 @@ detect; this is stated in every result's `assumptions_unverified` field.
 
 ## 5. Claim identity (D6)
 
-Byte-level rules (`ENCODING.md`):
+Byte-level rules (`ENCODING.md`, `msve-descriptor-1`, candidate 0.8.9 A6):
 1. Strings → NFC-normalized UTF-8 bytes.
 2. Fixed field order: kind, proposition, goal_ref, inputs_ref,
-   assumptions, spec_version.
-3. Each field length-prefixed: 4-byte big-endian length + bytes.
-   No separators, no escaping needed.
-4. Assumptions: sorted by byte string; encoded as 4-byte BE count +
-   length-prefixed elements.
-5. `claim_id = sha256(canonical_bytes)` as 64-char lowercase hex.
+   assumptions, spec_version, encoding version.
+3. Scalars: `0x00` tag if null; else `0x01` tag + 4-byte big-endian
+   length + bytes. Null and empty string are distinct.
+4. Assumptions: sorted bytewise; encoded as 4-byte BE count +
+   tagged length-prefixed elements (explicit collection boundary).
+5. The encoding version `"msve-descriptor-1"` is hashed into the
+   preimage (version binding).
+6. `claim_id = sha256(preimage)` as 64-char lowercase hex.
 
 ## 6. Capacity (D5)
 
 Configurable limits (defaults in `config/default.json`):
 `max_assumptions` (16), `max_assertions` (64), `max_declarations` (16),
-`max_verification_records` (2), `max_descriptors` (2),
+`max_verification_records` (10000), `max_descriptors` (1000),
 `max_invocations` (2), `solver_timeout_ms` (5000).
 Exceeding any limit → `REJECTED` with `CAPACITY_EXCEEDED`.
 Config values are range-validated at load; invalid config → startup error.
