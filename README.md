@@ -37,7 +37,7 @@ observation, assurance achieved (only on evidence), and provenance.
 - `src/msve/` — pipeline: decode, admission, identity (D6), queries (D3),
   solver (Core A), checker (Core B, D4), assurance, capacity (D5), result
 - `config/default.json` — capacity limits (D5)
-- `tests/` — 139 automated tests (WO-1.0 §6 + WO-1.1 genuine-UNKNOWN + WO-1.2 cross-validation + WO-1.3/WO-1.4/WO-1.5 hardening + schema alignment + interface hardening + WO-1.9 amendments + D3 fragment + WO-1.9A corrections C1–C6)
+- `tests/` — 149 automated tests (WO-1.0 §6 + WO-1.1 genuine-UNKNOWN + WO-1.2 cross-validation + WO-1.3/WO-1.4/WO-1.5 hardening + schema alignment + interface hardening + WO-1.9 amendments + D3 fragment + WO-1.9A corrections C1–C6 + WO-1.9B reconciliation + WO-1.9C bindings + WO-1.9D schema closure)
 - `experiments/unknown_d1/` — genuine Z3 UNKNOWN end-to-end experiment
   (input, driver, typed output, metadata); report: `UNKNOWN_EXPERIMENT_REPORT.md`
 - `vectors/canonical_vectors.json` — golden D6 encoding vectors

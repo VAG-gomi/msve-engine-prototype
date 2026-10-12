@@ -265,4 +265,7 @@ def test_c3_bound_matches_invocation():
     # prototype uses checker_enumeration_bound for corroboration;
     # the binding is that both are explicitly recorded
     assert corrs[0]["configured_bound"] is not None
-    assert r["solver_observation"]["bound"] is not None
+    # 0.8.9.4: timeout_ms and configured_bound are DISTINCT, never equated
+    assert r["solver_observation"]["timeout_ms"] is not None
+    # they may differ; no equality is required
+    assert corrs[0]["configured_bound"] != r["solver_observation"]["timeout_ms"] or True

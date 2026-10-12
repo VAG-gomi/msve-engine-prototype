@@ -118,7 +118,8 @@ def _run_impl(doc, cfg=None):
         solver_obs["claim_id"] = cid
         solver_obs["spec_version"] = doc["spec_version"]
         # 0.8.9.3: explicit bound on the invocation for SAT-corroboration binding
-        solver_obs["bound"] = cfg["solver_timeout_ms"]
+        # 0.8.9.4: timeout_ms is DISTINCT from Core B enumeration bound
+        solver_obs["timeout_ms"] = cfg["solver_timeout_ms"]
         evidence["solver_observation"] = solver_obs
 
     outcome = solver_obs["outcome"] if solver_obs else None
