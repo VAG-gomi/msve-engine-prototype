@@ -16,8 +16,15 @@ def run(query, timeout_ms, invocation_id, config="default"):
     Observation: {tool, version, query_id, invocation_id, outcome,
                   elapsed_ms, config, model (optional), reason (for unknown)}.
     (0.8.9.6: config is recorded as actually applied.)
+    (0.8.9.7 Option A: only the "default" profile is supported. Any other
+    profile value is rejected with INVALID_INPUT. The "default" profile
+    applies no custom Z3 settings beyond the timeout; the recorded config
+    therefore truthfully describes the applied configuration.)
     outcome in {SAT, UNSAT, UNKNOWN}.
     """
+    if config != "default":
+        raise MSVEError("INVALID_INPUT",
+                        f"unsupported solver config profile: {config!r}; only 'default' is supported")
     qid = queries.query_id(query)
 
     # Defensive boundary: denotation and solver construction failures are

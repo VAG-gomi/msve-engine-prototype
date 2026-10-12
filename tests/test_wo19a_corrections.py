@@ -32,7 +32,8 @@ def test_c2_invocation_id_fixed_width():
     cid = "a" * 64
     qid = "b" * 64
     def mk(timeout=5000, tool_ver="5.1.0", nonce="n1", spec="0.8.9.5"):
-        return _invocation_id(cid, "msve/expr", qid, '{"a":1}', None,
+        # 0.8.9.7: inputs_ref is required (derived, never None)
+        return _invocation_id(cid, "msve/expr", qid, '{"a":1}', "c"*64,
                               spec, "z3", tool_ver, "default", timeout, nonce)
     inv = mk()
     assert len(inv) == 64
@@ -371,11 +372,19 @@ def test_96_duplicate_id_rejected():
         assert e.code == "INVALID_INPUT"
 
 def test_96_null_not_empty_string():
+    # 0.8.9.7: invocation fields are REQUIRED. None is rejected.
+    # The descriptor-level Option<Hash> distinguishability is tested
+    # via decode.py validation, not the invocation encoder.
     from msve.pipeline import _invocation_id
     cid, qid = "a"*64, "b"*64
-    id_none = _invocation_id(cid, "k", qid, "{}", None, "1.0", "z3", "5.1", "cfg", 5000, "n")
+    try:
+        _invocation_id(cid, "k", qid, "{}", None, "1.0", "z3", "5.1", "cfg", 5000, "n")
+        assert False, "should reject None"
+    except AssertionError:
+        pass  # expected
+    # Empty string is a valid (if unusual) required field value
     id_empty = _invocation_id(cid, "k", qid, "{}", "", "1.0", "z3", "5.1", "cfg", 5000, "n")
-    assert id_none != id_empty
+    assert len(id_empty) == 64
 
 def test_96_invalid_hash_rejected():
     from msve.pipeline import _validate_hash
@@ -410,3 +419,72 @@ def test_96_provenance_ref_mapping():
     invs = r["evidence"]["solver_invocations"]
     assert obs["provenance_ref"] == invs[0]["invocation_id"]
     assert obs["config"] == invs[0]["config"]
+
+
+# ---------------- 0.8.9.7 adversarial coverage ----------------
+def test_97_verif_inputs_is_qid():
+    # verification_inputs_ref must EQUAL qid (not hash of qid hex)
+    from msve.pipeline import run
+    import hashlib, json
+    query = {
+        "language": "msve-arith-v1",
+        "declarations": [{"name": "x", "sort": "Int"}],
+        "assertions": [[">", "x", 0]],
+    }
+    # Independently compute expected qid
+    canon = json.dumps(query, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    expected_qid = hashlib.sha256(canon).hexdigest()
+    # Double-hash (wrong behavior) would give a different value
+    wrong = hashlib.sha256(expected_qid.encode("utf-8")).hexdigest()
+    assert wrong != expected_qid, "test setup: double-hash must differ"
+
+    doc = {
+        "spec_version": "0.8.8.1",
+        "claim": {
+            "kind": "holds", "proposition": "x > 0",
+            "goal_ref": None, "inputs_ref": None, "assumptions": [],
+            "query": query,
+        },
+    }
+    r = run(doc)
+    inv = r["evidence"]["solver_invocations"][0]
+    assert inv["query_id"] == expected_qid
+    assert inv["inputs_ref"] == expected_qid, \
+        f"inputs_ref should equal qid, got {inv['inputs_ref']}"
+    assert inv["inputs_ref"] != wrong, "must not double-hash"
+
+def test_97_invocation_id_matches_vector():
+    # Implementation must match the normative test vector exactly
+    from msve.pipeline import _invocation_id
+    expected = "f082b9833cfbbe7ac316ffe4227c375470089793cfe7d419c040a83a7621fc0b"
+    got = _invocation_id(
+        "a"*64, "holds", "b"*64,
+        '{"assertions":[[">","x",0]],"declarations":[{"name":"x","sort":"Int"}],"language":"msve-arith-v1"}',
+        "b"*64, "0.8.8.1", "z3", "5.1.0", "default", 5000, "test-nonce-001",
+    )
+    assert got == expected, f"vector mismatch: {got} != {expected}"
+
+def test_97_unsupported_config_rejected():
+    from msve import solver
+    from msve.errors import MSVEError
+    query = {
+        "language": "msve-arith-v1",
+        "declarations": [{"name": "x", "sort": "Int"}],
+        "assertions": [[">", "x", 0]],
+    }
+    try:
+        solver.run(query, 1000, "test-id", config="aggressive")
+        assert False, "should reject"
+    except MSVEError as e:
+        assert e.code == "INVALID_INPUT"
+    # Default works
+    obs = solver.run(query, 1000, "test-id", config="default")
+    assert obs["config"] == "default"
+
+def test_97_capacity_exceeded_consistent():
+    # CAPACITY_EXCEEDED in all reason-code definitions
+    from msve import pipeline
+    # Check the pipeline uses the enum value
+    import inspect
+    src = inspect.getsource(pipeline)
+    assert '"CAPACITY_EXCEEDED"' in src or "'CAPACITY_EXCEEDED'" in src

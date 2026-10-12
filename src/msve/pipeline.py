@@ -40,13 +40,14 @@ def _invocation_id(claim_id_val, claim_kind, qid, query_canon, inputs_ref,
     # versions yield different IDs even for same claim+query.
     import struct
     def enc_str(x):
-        # 0.8.9.6: None, "", and valid strings are DISTINCT.
-        # None encodes as 0x00 (absent); "" encodes as 0x01+len(0);
-        # valid strings encode as 0x01+len+bytes. Never collapse.
-        if x is None:
-            return b"\x00"
+        # 0.8.9.7: Normative invocation encoding for REQUIRED fields.
+        # enc_str(s) = u32be(len(UTF8(s))) || UTF8(s).
+        # All invocation-ID fields are required; the optional-value
+        # 0x00/0x01 encoding is NOT used here (see descriptor encoding).
+        # inputs_ref is always a valid hash (derived, never None).
+        assert x is not None, "invocation field must not be None"
         b = str(x).encode("utf-8")
-        return b"\x01" + struct.pack(">I", len(b)) + b
+        return struct.pack(">I", len(b)) + b
     parts = [
         enc_str(claim_id_val), enc_str(claim_kind),
         enc_str(qid), enc_str(query_canon),
@@ -142,15 +143,16 @@ def _run_impl(doc, cfg=None):
         # 0.8.9.6: derive verification_inputs_ref per normative.
         # If claim provides valid inputs_ref, use it; else hash the query.
         # NEVER copy null as empty string.
-        import hashlib as _hl
         _claim_inputs = claim.get("inputs_ref")
         if _claim_inputs is not None:
             _validate_hash(_claim_inputs, "claim.inputs_ref")
             _verif_inputs_ref = _claim_inputs
         else:
-            # No external inputs referenced; query is the input identity
-            _verif_inputs_ref = _hl.sha256(
-                qid.encode("utf-8")).hexdigest()
+            # 0.8.9.7: No external inputs referenced. The query-ID is
+            # SHA-256 over the canonical query bytes (see queries.query_id),
+            # so it IS the fallback verification-input identity. Do NOT
+            # hash the hex digest a second time.
+            _verif_inputs_ref = qid
         import uuid
         # 0.8.9.6: cryptographically random nonce (UUID4) for robust
         # per-execution uniqueness. Timestamp-based nonces can collide
