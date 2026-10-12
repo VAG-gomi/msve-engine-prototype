@@ -95,15 +95,15 @@ def test_a5_precedence_explicit_over_embedded_over_default():
 
 def test_a6_encoding_version_bound():
     assert ENCODING_VERSION == "msve-descriptor-1"
-    desc = {"kind": "holds", "proposition": "p", "goal_ref": "g",
-            "inputs_ref": "i", "assumptions": [], "spec_version": "0.8.9"}
+    desc = {"kind": "holds", "proposition": "p", "goal_ref": None,
+            "inputs_ref": None, "assumptions": [], "spec_version": "0.8.9"}
     preimage = canonical_bytes(desc)
     assert preimage.endswith(_enc_scalar("msve-descriptor-1"))
 
 
 def test_a6_null_vs_empty_distinct():
-    base = {"kind": "holds", "proposition": "p", "goal_ref": "g",
-            "inputs_ref": "i", "assumptions": [], "spec_version": "0.8.9"}
+    base = {"kind": "holds", "proposition": "p", "goal_ref": None,
+            "inputs_ref": None, "assumptions": [], "spec_version": "0.8.9"}
     null_id = claim_id(dict(base, goal_ref=None))
     empty_id = claim_id(dict(base, goal_ref=""))
     assert null_id != empty_id
@@ -113,8 +113,8 @@ def test_a6_null_vs_empty_distinct():
 
 def test_a6_collection_boundary_explicit():
     # assumptions ["a|b"] vs ["a", "b"] must differ (no separator ambiguity)
-    base = {"kind": "holds", "proposition": "p", "goal_ref": "g",
-            "inputs_ref": "i", "spec_version": "0.8.9"}
+    base = {"kind": "holds", "proposition": "p", "goal_ref": None,
+            "inputs_ref": None, "spec_version": "0.8.9"}
     id1 = claim_id(dict(base, assumptions=["a|b"]))
     id2 = claim_id(dict(base, assumptions=["a", "b"]))
     assert id1 != id2
@@ -125,8 +125,8 @@ def test_a6_collection_boundary_explicit():
 
 def test_a6_version_change_changes_identity():
     # same logical descriptor under a different encoding version differs
-    desc = {"kind": "holds", "proposition": "p", "goal_ref": "g",
-            "inputs_ref": "i", "assumptions": ["a"], "spec_version": "0.8.9"}
+    desc = {"kind": "holds", "proposition": "p", "goal_ref": None,
+            "inputs_ref": None, "assumptions": ["a"], "spec_version": "0.8.9"}
     id_v1 = claim_id(desc)
     # manually compute with a hypothetical v2 tag
     parts = []

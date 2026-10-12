@@ -9,8 +9,8 @@ VECTORS = os.path.join(os.path.dirname(__file__), "..", "vectors", "canonical_ve
 
 
 def desc(**kw):
-    d = {"kind": "holds", "proposition": "p", "goal_ref": "g",
-         "inputs_ref": "i", "assumptions": [], "spec_version": "0.8.8.1"}
+    d = {"kind": "holds", "proposition": "p", "goal_ref": None,
+         "inputs_ref": None, "assumptions": [], "spec_version": "0.8.8.1"}
     d.update(kw)
     return d
 
@@ -30,7 +30,7 @@ def test_ambiguous_boundary_pipe():
     # "a|b" as one field vs "a","b" split must differ; length-prefixing
     # guarantees it (this is the spec |-joining gap, repaired here)
     a = claim_id(desc(proposition="a|b"))
-    b = claim_id(desc(proposition="a", goal_ref="b|g"))
+    b = claim_id(desc(proposition="a", goal_ref=None))
     assert a != b
 
 

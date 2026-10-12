@@ -17,8 +17,8 @@ def doc(**kw):
         "claim": {
             "kind": "holds",
             "proposition": "x+1 > x for x in [0,10]",
-            "goal_ref": "goal-1",
-            "inputs_ref": "inputs-1",
+            "goal_ref": None,
+            "inputs_ref": None,
             "assumptions": [],
         },
     }

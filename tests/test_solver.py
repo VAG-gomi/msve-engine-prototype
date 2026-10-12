@@ -120,7 +120,7 @@ def test_unknown_inconclusive_weak_backed_d1():
     # simulate: run pipeline but force the observation to UNKNOWN
     import msve.pipeline as P
     real_run = P.solv.run
-    def fake_run(query, timeout_ms, invocation_id):
+    def fake_run(query, timeout_ms, invocation_id, config="default"):
         o = real_run(query, timeout_ms, invocation_id)
         o["outcome"] = "UNKNOWN"
         o["reason"] = "injected for D1 test"
@@ -142,7 +142,7 @@ def test_unknown_never_positive_conclusion():
     d["claim"]["query"] = holds_query()
     import msve.pipeline as P
     real_run = P.solv.run
-    def fake_run(query, timeout_ms, invocation_id):
+    def fake_run(query, timeout_ms, invocation_id, config="default"):
         o = real_run(query, timeout_ms, invocation_id)
         o["outcome"] = "UNKNOWN"
         return o

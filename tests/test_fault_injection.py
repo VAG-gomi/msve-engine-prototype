@@ -13,7 +13,7 @@ from conftest import CFG, doc, holds_query, run_doc
 def _inject_solver_outcome(monkeypatch, outcome):
     import msve.pipeline as P
     real = P.solv.run
-    def fake(query, timeout_ms, invocation_id):
+    def fake(query, timeout_ms, invocation_id, config="default"):
         o = real(query, timeout_ms, invocation_id)
         o["outcome"] = outcome
         return o

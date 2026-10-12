@@ -121,8 +121,8 @@ def test_c4_nonstring_goal_ref_rejected():
 
 def test_c4_null_assumption_element_rejected():
     from msve.identity import canonical_bytes
-    desc = {"kind": "holds", "proposition": "p", "goal_ref": "g",
-            "inputs_ref": "i", "assumptions": ["a", None],
+    desc = {"kind": "holds", "proposition": "p", "goal_ref": None,
+            "inputs_ref": None, "assumptions": ["a", None],
             "spec_version": "0.8.9.1"}
     with pytest.raises(TypeError):
         canonical_bytes(desc)
@@ -345,3 +345,68 @@ def test_invocation_record_in_evidence():
     assert inv["query_id"] == hashlib.sha256(
         json.dumps(json.loads(inv["query_payload"]), sort_keys=True,
                    separators=(",", ":")).encode()).hexdigest()
+
+
+# ---------------- 0.8.9.6 adversarial coverage ----------------
+def test_96_distinct_nonces():
+    from msve.pipeline import _invocation_id
+    cid, qid = "a"*64, "b"*64
+    id1 = _invocation_id(cid, "k", qid, "{}", "c"*64, "1.0", "z3", "5.1", "cfg", 5000, "nonce-1")
+    id2 = _invocation_id(cid, "k", qid, "{}", "c"*64, "1.0", "z3", "5.1", "cfg", 5000, "nonce-2")
+    assert id1 != id2
+
+def test_96_uuid_nonce_uniqueness():
+    import uuid
+    nonces = {str(uuid.uuid4()) for _ in range(100)}
+    assert len(nonces) == 100
+
+def test_96_duplicate_id_rejected():
+    from msve.pipeline import _check_invocation_uniqueness
+    from msve.errors import MSVEError
+    invs = [{"invocation_id": "abc123"}, {"invocation_id": "abc123"}]
+    try:
+        _check_invocation_uniqueness(invs)
+        assert False, "should raise"
+    except MSVEError as e:
+        assert e.code == "INVALID_INPUT"
+
+def test_96_null_not_empty_string():
+    from msve.pipeline import _invocation_id
+    cid, qid = "a"*64, "b"*64
+    id_none = _invocation_id(cid, "k", qid, "{}", None, "1.0", "z3", "5.1", "cfg", 5000, "n")
+    id_empty = _invocation_id(cid, "k", qid, "{}", "", "1.0", "z3", "5.1", "cfg", 5000, "n")
+    assert id_none != id_empty
+
+def test_96_invalid_hash_rejected():
+    from msve.pipeline import _validate_hash
+    from msve.errors import MSVEError
+    for bad in ["", "xyz", "A"*64, "a"*63, "a"*65, None, 123]:
+        try:
+            _validate_hash(bad, "test")
+            assert False, f"should reject {bad!r}"
+        except MSVEError as e:
+            assert e.code == "MALFORMED_INPUT"
+    assert _validate_hash("a"*64, "test") == "a"*64
+
+def test_96_provenance_ref_mapping():
+    from msve.pipeline import run
+    doc = {
+        "spec_version": "0.8.8.1",
+        "claim": {
+            "kind": "holds",
+            "proposition": "x > 0",
+            "goal_ref": None,
+            "inputs_ref": None,
+            "assumptions": [],
+            "query": {
+                "language": "msve-arith-v1",
+                "declarations": [{"name": "x", "sort": "Int"}],
+                "assertions": [[">", "x", 0]],
+            },
+        },
+    }
+    r = run(doc)
+    obs = r["solver_observation"]
+    invs = r["evidence"]["solver_invocations"]
+    assert obs["provenance_ref"] == invs[0]["invocation_id"]
+    assert obs["config"] == invs[0]["config"]

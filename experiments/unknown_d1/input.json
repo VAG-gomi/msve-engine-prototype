@@ -3,20 +3,48 @@
   "claim": {
     "kind": "prove",
     "proposition": "1000003 is composite (has a nontrivial factorization)",
-    "goal_ref": "unknown-exp-goal-001",
-    "inputs_ref": "unknown-exp-inputs-001",
-    "assumptions": ["integer arithmetic is consistent"],
+    "goal_ref": null,
+    "inputs_ref": null,
+    "assumptions": [
+      "integer arithmetic is consistent"
+    ],
     "query": {
       "language": "msve-arith-v1",
       "declarations": [
-        {"name": "x", "sort": "Int"},
-        {"name": "y", "sort": "Int"}
+        {
+          "name": "x",
+          "sort": "Int"
+        },
+        {
+          "name": "y",
+          "sort": "Int"
+        }
       ],
       "assertions": [
-        ["=", ["*", "x", "y"], 1000003],
-        [">", "x", 1],
-        [">", "y", 1],
-        ["<=", "x", "y"]
+        [
+          "=",
+          [
+            "*",
+            "x",
+            "y"
+          ],
+          1000003
+        ],
+        [
+          ">",
+          "x",
+          1
+        ],
+        [
+          ">",
+          "y",
+          1
+        ],
+        [
+          "<=",
+          "x",
+          "y"
+        ]
       ]
     }
   },

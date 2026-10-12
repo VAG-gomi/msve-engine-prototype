@@ -20,6 +20,18 @@ ARCHIVAL = {
 }
 
 
+import re as _re
+_HASH_RE = _re.compile(r"^[0-9a-f]{64}$")
+
+def _validate_hash(v, field_name):
+    """0.8.9.6: strict Hash validation. Rejects non-64-char hex."""
+    from .errors import MSVEError
+    if not isinstance(v, str) or not _HASH_RE.match(v):
+        raise MSVEError("MALFORMED_INPUT",
+                        f"{field_name} must be 64-char lowercase hex, got {v!r}")
+    return v
+
+
 def _invocation_id(claim_id_val, claim_kind, qid, query_canon, inputs_ref,
                      spec_version, tool, tool_version, config, timeout_ms,
                      nonce):
@@ -28,12 +40,17 @@ def _invocation_id(claim_id_val, claim_kind, qid, query_canon, inputs_ref,
     # versions yield different IDs even for same claim+query.
     import struct
     def enc_str(x):
+        # 0.8.9.6: None, "", and valid strings are DISTINCT.
+        # None encodes as 0x00 (absent); "" encodes as 0x01+len(0);
+        # valid strings encode as 0x01+len+bytes. Never collapse.
+        if x is None:
+            return b"\x00"
         b = str(x).encode("utf-8")
-        return struct.pack(">I", len(b)) + b
+        return b"\x01" + struct.pack(">I", len(b)) + b
     parts = [
         enc_str(claim_id_val), enc_str(claim_kind),
         enc_str(qid), enc_str(query_canon),
-        enc_str(inputs_ref or ""), enc_str(spec_version),
+        enc_str(inputs_ref), enc_str(spec_version),
         enc_str(tool), enc_str(tool_version),
         enc_str(config), struct.pack(">I", timeout_ms),
         enc_str(nonce),
@@ -122,19 +139,41 @@ def _run_impl(doc, cfg=None):
     query = claim.get("query")
     if query is not None:
         qid = queries.query_id(query)
-        import time
-        nonce = str(int(time.time() * 1000000))  # unique per execution
+        # 0.8.9.6: derive verification_inputs_ref per normative.
+        # If claim provides valid inputs_ref, use it; else hash the query.
+        # NEVER copy null as empty string.
+        import hashlib as _hl
+        _claim_inputs = claim.get("inputs_ref")
+        if _claim_inputs is not None:
+            _validate_hash(_claim_inputs, "claim.inputs_ref")
+            _verif_inputs_ref = _claim_inputs
+        else:
+            # No external inputs referenced; query is the input identity
+            _verif_inputs_ref = _hl.sha256(
+                qid.encode("utf-8")).hexdigest()
+        import uuid
+        # 0.8.9.6: cryptographically random nonce (UUID4) for robust
+        # per-execution uniqueness. Timestamp-based nonces can collide
+        # under concurrency or coarse clock resolution.
+        nonce = str(uuid.uuid4())
         import json as _json
         qcanon = _json.dumps(query, sort_keys=True, separators=(",", ":")).encode("utf-8").decode("utf-8")
         inv_id = _invocation_id(
             cid, claim.get("kind", "msve/expr"),
             qid, qcanon,
-            claim.get("inputs_ref"), doc["spec_version"],
+            _verif_inputs_ref, doc["spec_version"],
             "z3", solv.VERSION if hasattr(solv, "VERSION") else "unknown",
             str(cfg.get("solver_config", "default")),
             cfg["solver_timeout_ms"], nonce)
         check_limit(cfg, "max_invocations", 1, "solver invocations")
-        solver_obs = solv.run(query, cfg["solver_timeout_ms"], inv_id)
+        _solver_config = str(cfg.get("solver_config", "default"))
+        solver_obs = solv.run(query, cfg["solver_timeout_ms"], inv_id,
+                              config=_solver_config)
+        # 0.8.9.6: provenance_ref IS the invocation_id (normative mapping).
+        # The solver returns invocation_id; we map it to provenance_ref
+        # for the SolverObs record. Config must match the invocation.
+        solver_obs["provenance_ref"] = solver_obs.pop("invocation_id")
+        assert solver_obs["config"] == _solver_config, "config mismatch"
         # A1 binding: the observation is bound to the actual claim, query,
         # and specification version (in addition to invocation_id, which
         # already binds claim_id + query_id).
@@ -151,15 +190,17 @@ def _run_impl(doc, cfg=None):
             "query": query,
             "query_id": qid,
             "query_payload": qcanon,
-            "inputs_ref": claim.get("inputs_ref"),
+            "inputs_ref": _verif_inputs_ref,
             "spec_version": doc["spec_version"],
             "tool": "z3",
             "version": solv.VERSION if hasattr(solv, "VERSION") else "unknown",
-            "config": str(cfg.get("solver_config", "default")),
+            "config": _solver_config,
             "timeout_ms": cfg["solver_timeout_ms"],
             "execution_nonce": nonce,
         }]
         evidence["solver_observation"] = solver_obs
+        # 0.8.9.6: bundle-level duplicate invocation ID rejection
+        _check_invocation_uniqueness(evidence["solver_invocations"])
 
     outcome = solver_obs["outcome"] if solver_obs else None
 
@@ -270,6 +311,19 @@ def _run_impl(doc, cfg=None):
         quarantined_input_evidence=quarantined,
         provenance=dict(ARCHIVAL),
     )
+
+
+def _check_invocation_uniqueness(invocations):
+    """Reject duplicate invocation IDs within an evidence bundle.
+    (0.8.9.6, Inv 27c normative requirement.)"""
+    seen = set()
+    for inv in invocations:
+        iid = inv.get("invocation_id")
+        if iid in seen:
+            from .errors import MSVEError
+            raise MSVEError("INVALID_INPUT",
+                            f"duplicate invocation_id in evidence bundle: {iid[:16]}...")
+        seen.add(iid)
 
 
 def run(doc, cfg=None):

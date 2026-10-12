@@ -10,11 +10,12 @@ TOOL = "z3"
 VERSION = z3.get_version_string()
 
 
-def run(query, timeout_ms, invocation_id):
+def run(query, timeout_ms, invocation_id, config="default"):
     """Denote the query, run Z3, return an observation record.
 
     Observation: {tool, version, query_id, invocation_id, outcome,
-                  elapsed_ms, model (optional), reason (for unknown)}.
+                  elapsed_ms, config, model (optional), reason (for unknown)}.
+    (0.8.9.6: config is recorded as actually applied.)
     outcome in {SAT, UNSAT, UNKNOWN}.
     """
     qid = queries.query_id(query)
@@ -58,6 +59,7 @@ def run(query, timeout_ms, invocation_id):
         "invocation_id": invocation_id,
         "outcome": outcome,
         "elapsed_ms": elapsed,
+        "config": config,
     }
     if outcome == "SAT":
         try:
