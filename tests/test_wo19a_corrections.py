@@ -675,3 +675,50 @@ def test_99_duplicate_cannot_reach_solver():
     except MSVEError as e:
         assert e.code == "MALFORMED_INPUT"
     # If decode rejects, pipeline never runs; no invocation possible
+
+
+# ---------------- 0.8.9.10 run_text() end-to-end ----------------
+def test_910_run_text_duplicate_key_rejected():
+    # End-to-end through the raw-JSON entry point run_text().
+    # Duplicate keys must be rejected BEFORE solver invocation.
+    from msve import pipeline as pl
+    from msve.errors import MSVEError
+
+    # Sentinel: fail loudly if the solver is ever called
+    called = []
+    orig_run = pl.solv.run
+    def sentinel(*a, **k):
+        called.append(True)
+        raise AssertionError("solver must not be reached for duplicate-key input")
+    pl.solv.run = sentinel
+    try:
+        raw = '''{"spec_version": "0.8.8.1",
+                  "claim": {"kind": "holds", "proposition": "x > 0",
+                            "goal_ref": null, "inputs_ref": null, "assumptions": [],
+                            "query": {"language": "msve-arith-v1",
+                                      "declarations": [{"name": "x", "sort": "Int"}],
+                                      "assertions": [[">", "x", 0]],
+                                      "assertions": [[">", "x", 1]]}}}'''
+        try:
+            pl.run_text(raw)
+            assert False, "run_text should raise MALFORMED_INPUT"
+        except MSVEError as e:
+            assert e.code == "MALFORMED_INPUT", f"got {e.code}"
+            assert "duplicate" in str(e).lower()
+        assert not called, "solver was invoked despite duplicate-key rejection"
+    finally:
+        pl.solv.run = orig_run
+
+def test_910_run_text_valid_still_works():
+    # run_text() is the raw-JSON entry point; valid input still flows through.
+    # Direct dict invocation to run() is already-parsed input (no duplicate
+    # history recoverable from a dict).
+    from msve.pipeline import run_text
+    raw = '''{"spec_version": "0.8.8.1",
+              "claim": {"kind": "holds", "proposition": "x > 0",
+                        "goal_ref": null, "inputs_ref": null, "assumptions": [],
+                        "query": {"language": "msve-arith-v1",
+                                  "declarations": [{"name": "x", "sort": "Int"}],
+                                  "assertions": [[">", "x", 0]]}}}'''
+    r = run_text(raw)
+    assert r["solver_observation"] is not None
