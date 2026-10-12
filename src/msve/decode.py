@@ -12,9 +12,25 @@ CLAIM_KINDS = (
 ASSURANCE_LEVELS = ("LEVEL_A", "LEVEL_B")
 
 
+def _reject_duplicates(pairs):
+    """0.8.9.9: object_pairs_hook rejecting duplicate keys.
+    D3 schema requires duplicate object keys to be rejected at admission."""
+    seen = set()
+    for k, v in pairs:
+        if k in seen:
+            raise MSVEError("MALFORMED_INPUT",
+                            f"duplicate object key: {k!r}")
+        seen.add(k)
+    return dict(pairs)
+
+
 def decode(text):
     try:
-        doc = json.loads(text)
+        # 0.8.9.9: duplicate-aware parsing. Ordinary json.loads collapses
+        # duplicates (last wins); we must reject them per D3 schema.
+        doc = json.loads(text, object_pairs_hook=_reject_duplicates)
+    except MSVEError:
+        raise
     except json.JSONDecodeError as e:
         raise MSVEError("MALFORMED_INPUT", f"input is not valid JSON: {e}")
     if not isinstance(doc, dict):

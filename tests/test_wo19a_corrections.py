@@ -597,3 +597,81 @@ def test_98_qid_payload_mismatch_rejected():
         assert False, "should reject qid mismatch"
     except MSVEError as e:
         assert e.code == "INVALID_INPUT"
+
+
+# ---------------- 0.8.9.9 duplicate-key coverage ----------------
+def test_99_duplicate_top_level_key():
+    from msve.decode import decode
+    from msve.errors import MSVEError
+    raw = '{"language": "msve-arith-v1", "assertions": [true], "assertions": [false]}'
+    try:
+        decode(raw)
+        assert False, "should reject duplicate key"
+    except MSVEError as e:
+        assert e.code == "MALFORMED_INPUT"
+        assert "duplicate" in str(e).lower()
+
+def test_99_duplicate_declaration_name_key():
+    from msve.decode import decode
+    from msve.errors import MSVEError
+    raw = '''{"language": "msve-arith-v1",
+              "declarations": [{"name": "x", "name": "y", "sort": "Int"}],
+              "assertions": [[">", "x", 0]]}'''
+    try:
+        decode(raw)
+        assert False, "should reject"
+    except MSVEError as e:
+        assert e.code == "MALFORMED_INPUT"
+
+def test_99_duplicate_declaration_sort_key():
+    from msve.decode import decode
+    from msve.errors import MSVEError
+    raw = '''{"language": "msve-arith-v1",
+              "declarations": [{"name": "x", "sort": "Int", "sort": "Bool"}],
+              "assertions": [[">", "x", 0]]}'''
+    try:
+        decode(raw)
+        assert False, "should reject"
+    except MSVEError as e:
+        assert e.code == "MALFORMED_INPUT"
+
+def test_99_duplicate_nested_query_key():
+    from msve.decode import decode
+    from msve.errors import MSVEError
+    # Duplicate inside the claim's query object
+    raw = '''{"spec_version": "0.8.8.1",
+              "claim": {"kind": "holds", "proposition": "p",
+                        "goal_ref": null, "inputs_ref": null, "assumptions": [],
+                        "query": {"language": "msve-arith-v1",
+                                  "language": "msve-arith-v2",
+                                  "declarations": [],
+                                  "assertions": [[">", "x", 0]]}}}'''
+    try:
+        decode(raw)
+        assert False, "should reject nested duplicate"
+    except MSVEError as e:
+        assert e.code == "MALFORMED_INPUT"
+
+def test_99_valid_json_still_works():
+    from msve.decode import decode
+    raw = '{"language": "msve-arith-v1", "declarations": [], "assertions": [[">", "x", 0]]}'
+    doc = decode(raw)
+    assert doc["language"] == "msve-arith-v1"
+
+def test_99_duplicate_cannot_reach_solver():
+    # End-to-end: duplicate-key input cannot produce solver invocation
+    from msve.decode import decode
+    from msve.errors import MSVEError
+    raw = '''{"spec_version": "0.8.8.1",
+              "claim": {"kind": "holds", "proposition": "x > 0",
+                        "goal_ref": null, "inputs_ref": null, "assumptions": [],
+                        "query": {"language": "msve-arith-v1",
+                                  "declarations": [{"name": "x", "sort": "Int"}],
+                                  "assertions": [[">", "x", 0]],
+                                  "assertions": [[">", "x", 1]]}}}'''
+    try:
+        decode(raw)
+        assert False, "decode should reject"
+    except MSVEError as e:
+        assert e.code == "MALFORMED_INPUT"
+    # If decode rejects, pipeline never runs; no invocation possible
