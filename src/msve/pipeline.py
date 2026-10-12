@@ -203,6 +203,8 @@ def _run_impl(doc, cfg=None):
         evidence["solver_observation"] = solver_obs
         # 0.8.9.6: bundle-level duplicate invocation ID rejection
         _check_invocation_uniqueness(evidence["solver_invocations"])
+        # 0.8.9.8: query/query_payload/query_id consistency
+        _check_query_consistency(evidence["solver_invocations"][0])
 
     outcome = solver_obs["outcome"] if solver_obs else None
 
@@ -313,6 +315,26 @@ def _run_impl(doc, cfg=None):
         quarantined_input_evidence=quarantined,
         provenance=dict(ARCHIVAL),
     )
+
+
+def _check_query_consistency(inv):
+    """0.8.9.8: query object, payload, and ID must be consistent.
+    query_payload must be canonical JSON of query;
+    query_id must be SHA-256 of the payload bytes."""
+    import hashlib, json as _js
+    from .errors import MSVEError
+    q = inv.get("query")
+    payload = inv.get("query_payload")
+    qid = inv.get("query_id")
+    # Recompute canonical payload from query object
+    expected_payload = _js.dumps(q, sort_keys=True, separators=(",", ":"))
+    if payload != expected_payload:
+        raise MSVEError("INVALID_INPUT",
+                        "query_payload is not canonical JSON of query")
+    expected_qid = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    if qid != expected_qid:
+        raise MSVEError("INVALID_INPUT",
+                        "query_id does not match SHA-256 of query_payload")
 
 
 def _check_invocation_uniqueness(invocations):

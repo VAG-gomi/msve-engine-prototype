@@ -30,9 +30,20 @@ _BINOP_INT = {"+", "-", "*"}
 _BINOP_CMP = {"=", "<", "<=", ">", ">="}
 
 
+# 0.8.9.8: exact permitted keys (D3 schema). Unknown keys are MALFORMED_INPUT.
+_QUERY_KEYS_REQUIRED = frozenset({"language", "assertions"})
+_QUERY_KEYS_OPTIONAL = frozenset({"declarations"})
+_QUERY_KEYS_ALL = _QUERY_KEYS_REQUIRED | _QUERY_KEYS_OPTIONAL
+_DECL_KEYS = frozenset({"name", "sort"})
+
 def validate(query):
     if not isinstance(query, dict):
         raise MSVEError("MALFORMED_INPUT", "query must be an object")
+    # 0.8.9.8: reject unknown top-level keys (D3 schema: exactly these fields)
+    _unknown = set(query.keys()) - _QUERY_KEYS_ALL
+    if _unknown:
+        raise MSVEError("MALFORMED_INPUT",
+                        f"unknown query field(s): {sorted(_unknown)}")
     # 0.8.9.5 (Finding 5): distinguish malformed from unsupported language.
     lang = query.get("language")
     if not isinstance(lang, str):
@@ -47,7 +58,14 @@ def validate(query):
         raise MSVEError("MALFORMED_INPUT", "assertions must be a non-empty list")
     sig = {}
     for d in decls:
-        if not isinstance(d, dict) or not isinstance(d.get("name"), str) or d.get("sort") not in SORTS:
+        if not isinstance(d, dict):
+            raise MSVEError("MALFORMED_INPUT", f"declaration must be an object: {d!r}")
+        # 0.8.9.8: exact declaration keys (name, sort only)
+        _dunknown = set(d.keys()) - _DECL_KEYS
+        if _dunknown:
+            raise MSVEError("MALFORMED_INPUT",
+                            f"unknown declaration field(s): {sorted(_dunknown)}")
+        if not isinstance(d.get("name"), str) or d.get("sort") not in SORTS:
             raise MSVEError("MALFORMED_INPUT", f"bad declaration: {d!r}")
         if d["name"] in sig:
             raise MSVEError("MALFORMED_INPUT", f"duplicate declaration: {d['name']}")

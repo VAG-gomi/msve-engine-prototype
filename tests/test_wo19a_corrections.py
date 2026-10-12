@@ -488,3 +488,112 @@ def test_97_capacity_exceeded_consistent():
     import inspect
     src = inspect.getsource(pipeline)
     assert '"CAPACITY_EXCEEDED"' in src or "'CAPACITY_EXCEEDED'" in src
+
+
+# ---------------- 0.8.9.8 adversarial coverage ----------------
+def test_98_unknown_top_level_key_rejected():
+    from msve import queries
+    from msve.errors import MSVEError
+    q = {
+        "language": "msve-arith-v1",
+        "declarations": [],
+        "assertions": [[">", "x", 0]],
+        "ignored_field": "not permitted",
+    }
+    try:
+        queries.validate(q)
+        assert False, "should reject unknown key"
+    except MSVEError as e:
+        assert e.code == "MALFORMED_INPUT"
+        assert "ignored_field" in str(e)
+
+def test_98_unknown_declaration_key_rejected():
+    from msve import queries
+    from msve.errors import MSVEError
+    q = {
+        "language": "msve-arith-v1",
+        "declarations": [{"name": "x", "sort": "Int", "extra": "bad"}],
+        "assertions": [[">", "x", 0]],
+    }
+    try:
+        queries.validate(q)
+        assert False, "should reject unknown decl key"
+    except MSVEError as e:
+        assert e.code == "MALFORMED_INPUT"
+
+def test_98_unsupported_language_still_unsupported():
+    # Well-formed unsupported language must remain UNSUPPORTED (not MALFORMED)
+    from msve import queries
+    from msve.errors import MSVEError
+    q = {
+        "language": "msve-arith-v2",
+        "declarations": [],
+        "assertions": [[">", "x", 0]],
+    }
+    try:
+        queries.validate(q)
+        assert False, "should raise"
+    except MSVEError as e:
+        assert e.code == "UNSUPPORTED", f"got {e.code}"
+
+def test_98_vector_query_id_reproducible():
+    # Canonical bytes from the vector must produce the stated query_id
+    import hashlib, json
+    query_obj = {
+        "language": "msve-arith-v1",
+        "declarations": [{"name": "x", "sort": "Int"}],
+        "assertions": [[">", "x", 0]],
+    }
+    canon = json.dumps(query_obj, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    qid = hashlib.sha256(canon).hexdigest()
+    expected = "9e34f1406234b4ed13c7327c6186f895df0121187c8a110043d7e4a588ce015d"
+    assert qid == expected, f"query_id mismatch: {qid}"
+
+def test_98_vector_invocation_id_reproducible():
+    # Full preimage from vector must produce expected invocation ID
+    from msve.pipeline import _invocation_id
+    import hashlib, json
+    query_obj = {
+        "language": "msve-arith-v1",
+        "declarations": [{"name": "x", "sort": "Int"}],
+        "assertions": [[">", "x", 0]],
+    }
+    canon_text = json.dumps(query_obj, sort_keys=True, separators=(",", ":"))
+    qid = hashlib.sha256(canon_text.encode("utf-8")).hexdigest()
+    got = _invocation_id(
+        "a"*64, "holds", qid, canon_text, qid,
+        "0.8.8.1", "z3", "5.1.0", "default", 5000, "test-nonce-001",
+    )
+    expected = "27165e3ccdaef938f5821521544763c6c7537a4d4e9d1847b23e09eb49cd7826"
+    assert got == expected, f"invocation ID mismatch: {got}"
+
+def test_98_mismatched_query_payload_rejected():
+    from msve.pipeline import _check_query_consistency
+    from msve.errors import MSVEError
+    inv = {
+        "query": {"language": "msve-arith-v1", "declarations": [], "assertions": [[">", "x", 0]]},
+        "query_payload": '{"wrong": "payload"}',
+        "query_id": "a"*64,
+    }
+    try:
+        _check_query_consistency(inv)
+        assert False, "should reject mismatch"
+    except MSVEError as e:
+        assert e.code == "INVALID_INPUT"
+
+def test_98_qid_payload_mismatch_rejected():
+    from msve.pipeline import _check_query_consistency
+    from msve.errors import MSVEError
+    import json
+    q = {"language": "msve-arith-v1", "declarations": [], "assertions": [[">", "x", 0]]}
+    payload = json.dumps(q, sort_keys=True, separators=(",", ":"))
+    inv = {
+        "query": q,
+        "query_payload": payload,
+        "query_id": "b"*64,  # wrong qid
+    }
+    try:
+        _check_query_consistency(inv)
+        assert False, "should reject qid mismatch"
+    except MSVEError as e:
+        assert e.code == "INVALID_INPUT"
