@@ -41,8 +41,11 @@ def validate_document(doc):
         raise MSVEError("MALFORMED_INPUT", "proposition must be a string")
     for f in ("goal_ref", "inputs_ref"):
         v = claim[f]
-        # 0.8.9.1 (Finding 4): null/absent permitted per normative A6;
-        # empty string distinct from null; non-strings rejected.
+        # 0.8.9.5 (Finding 4): mandatory keys, nullable values (Option<Hash>).
+        # Missing key → MALFORMED_INPUT (checked above). Null → None.
+        # Present value must be a non-empty string (normative requires
+        # 64-char hex Hash; prototype accepts non-empty string as exploratory).
+        # Empty string is distinct from null and is INVALID.
         if v is not None and (not isinstance(v, str) or not v):
             raise MSVEError("MALFORMED_INPUT", f"{f} must be null or a non-empty string")
     if not isinstance(claim["assumptions"], list) or not all(

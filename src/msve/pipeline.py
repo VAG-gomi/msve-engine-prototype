@@ -20,12 +20,25 @@ ARCHIVAL = {
 }
 
 
-def _invocation_id(claim_id_val, qid):
-    # Both operands are fixed 64-char lowercase hex (sha256). The ":"
-    # delimiter is therefore at a deterministic position (byte 64) and the
-    # parse is unique without additional framing (see spec §E.6b, 0.8.9.1).
-    assert len(claim_id_val) == 64 and len(qid) == 64
-    return hashlib.sha256(f"{claim_id_val}:{qid}".encode()).hexdigest()
+def _invocation_id(claim_id_val, claim_kind, qid, query_canon, inputs_ref,
+                     spec_version, tool, tool_version, config, timeout_ms,
+                     nonce):
+    # 0.8.9.5: execution-specific invocation ID. SHA-256 over canonical
+    # encoding of complete metadata. Different configurations/timeouts/
+    # versions yield different IDs even for same claim+query.
+    import struct
+    def enc_str(x):
+        b = str(x).encode("utf-8")
+        return struct.pack(">I", len(b)) + b
+    parts = [
+        enc_str(claim_id_val), enc_str(claim_kind),
+        enc_str(qid), enc_str(query_canon),
+        enc_str(inputs_ref or ""), enc_str(spec_version),
+        enc_str(tool), enc_str(tool_version),
+        enc_str(config), struct.pack(">I", timeout_ms),
+        enc_str(nonce),
+    ]
+    return hashlib.sha256(b"".join(parts)).hexdigest()
 
 
 def _run_impl(doc, cfg=None):
@@ -109,7 +122,17 @@ def _run_impl(doc, cfg=None):
     query = claim.get("query")
     if query is not None:
         qid = queries.query_id(query)
-        inv_id = _invocation_id(cid, qid)
+        import time
+        nonce = str(int(time.time() * 1000000))  # unique per execution
+        import json as _json
+        qcanon = _json.dumps(query, sort_keys=True, separators=(",", ":")).encode("utf-8").decode("utf-8")
+        inv_id = _invocation_id(
+            cid, claim.get("kind", "msve/expr"),
+            qid, qcanon,
+            claim.get("inputs_ref"), doc["spec_version"],
+            "z3", solv.VERSION if hasattr(solv, "VERSION") else "unknown",
+            str(cfg.get("solver_config", "default")),
+            cfg["solver_timeout_ms"], nonce)
         check_limit(cfg, "max_invocations", 1, "solver invocations")
         solver_obs = solv.run(query, cfg["solver_timeout_ms"], inv_id)
         # A1 binding: the observation is bound to the actual claim, query,
@@ -120,6 +143,22 @@ def _run_impl(doc, cfg=None):
         # 0.8.9.3: explicit bound on the invocation for SAT-corroboration binding
         # 0.8.9.4: timeout_ms is DISTINCT from Core B enumeration bound
         solver_obs["timeout_ms"] = cfg["solver_timeout_ms"]
+        # 0.8.9.5: full execution-specific invocation record
+        evidence["solver_invocations"] = [{
+            "invocation_id": inv_id,
+            "claim_id": cid,
+            "claim_kind": claim.get("kind", "msve/expr"),
+            "query": query,
+            "query_id": qid,
+            "query_payload": qcanon,
+            "inputs_ref": claim.get("inputs_ref"),
+            "spec_version": doc["spec_version"],
+            "tool": "z3",
+            "version": solv.VERSION if hasattr(solv, "VERSION") else "unknown",
+            "config": str(cfg.get("solver_config", "default")),
+            "timeout_ms": cfg["solver_timeout_ms"],
+            "execution_nonce": nonce,
+        }]
         evidence["solver_observation"] = solver_obs
 
     outcome = solver_obs["outcome"] if solver_obs else None
@@ -268,7 +307,7 @@ def run(doc, cfg=None):
             descriptor=descriptor,
             claim_id_val=cid,
             query_id_val=None,
-            semantic_result={"variant": "INCONCLUSIVE", "reason": "capacity-exceeded"},
+            semantic_result={"variant": "INCONCLUSIVE", "reason": "CAPACITY_EXCEEDED"},
             solver_observation=None,
             assurance={"basis": None, "weak": False,
                        "notes": ["capacity exceeded; no basis awarded"]},

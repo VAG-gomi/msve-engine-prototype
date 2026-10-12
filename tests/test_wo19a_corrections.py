@@ -27,14 +27,23 @@ def test_c2_query_id_none_without_query():
 
 
 def test_c2_invocation_id_fixed_width():
-    # both operands are 64-char hex; delimiter at deterministic position
+    # 0.8.9.5: execution-specific invocation ID over complete metadata
     from msve.pipeline import _invocation_id
     cid = "a" * 64
     qid = "b" * 64
-    inv = _invocation_id(cid, qid)
+    def mk(timeout=5000, tool_ver="5.1.0", nonce="n1", spec="0.8.9.5"):
+        return _invocation_id(cid, "msve/expr", qid, '{"a":1}', None,
+                              spec, "z3", tool_ver, "default", timeout, nonce)
+    inv = mk()
     assert len(inv) == 64
-    # different orderings / similar values don't collide
-    assert _invocation_id(cid, qid) != _invocation_id(qid, cid)
+    # different timeouts → different IDs (same claim+query)
+    assert mk(timeout=5000) != mk(timeout=10000)
+    # different solver versions → different IDs
+    assert mk(tool_ver="5.1.0") != mk(tool_ver="5.2.0")
+    # different spec versions → different IDs
+    assert mk(spec="0.8.9.5") != mk(spec="0.8.9.4")
+    # different nonces → different IDs (uniqueness)
+    assert mk(nonce="n1") != mk(nonce="n2")
 
 
 # ---------------- Finding 3: witness paths ----------------
@@ -231,7 +240,7 @@ def test_b6_capacity_exceeded_is_typed_result():
     assert r["capacity_exceeded"]["limit"] == 2
     assert r["capacity_exceeded"]["actual"] == 5
     assert r["semantic_result"]["variant"] == "INCONCLUSIVE"
-    assert r["semantic_result"]["reason"] == "capacity-exceeded"
+    assert r["semantic_result"]["reason"] == "CAPACITY_EXCEEDED"
     assert r["assurance_achieved"] is None
 
 
@@ -269,3 +278,70 @@ def test_c3_bound_matches_invocation():
     assert r["solver_observation"]["timeout_ms"] is not None
     # they may differ; no equality is required
     assert corrs[0]["configured_bound"] != r["solver_observation"]["timeout_ms"] or True
+
+
+# ---------------- 0.8.9.5 Finding 5: D3 language status ----------------
+def test_lang_missing_is_malformed():
+    from msve import queries
+    from msve.errors import MSVEError
+    q = {"declarations": [], "assertions": []}  # no language key
+    try:
+        queries.validate(q)
+        assert False, "should raise"
+    except MSVEError as e:
+        assert e.code == "MALFORMED_INPUT"
+
+def test_lang_nonstring_is_malformed():
+    from msve import queries
+    from msve.errors import MSVEError
+    q = {"language": 123, "declarations": [], "assertions": []}
+    try:
+        queries.validate(q)
+        assert False, "should raise"
+    except MSVEError as e:
+        assert e.code == "MALFORMED_INPUT"
+
+def test_lang_unsupported_is_unsupported():
+    from msve import queries
+    from msve.errors import MSVEError
+    q = {"language": "msve-arith-v2", "declarations": [], "assertions": []}
+    try:
+        queries.validate(q)
+        assert False, "should raise"
+    except MSVEError as e:
+        assert e.code == "UNSUPPORTED"
+
+
+# ---------------- 0.8.9.5 Finding 3: invocation uniqueness ----------------
+def test_invocation_record_in_evidence():
+    # Full pipeline stores execution-specific invocation in evidence
+    from msve.pipeline import run
+    doc = {
+        "spec_version": "0.8.8.1",
+        "claim": {
+            "kind": "holds",
+            "proposition": "x > 0",
+            "goal_ref": None,
+            "inputs_ref": None,
+            "assumptions": [],
+            "query": {
+                "language": "msve-arith-v1",
+                "declarations": [{"name": "x", "sort": "Int"}],
+                "assertions": [[">", "x", 0]],
+            },
+        },
+    }
+    r = run(doc)
+    invs = r["evidence"].get("solver_invocations", [])
+    assert len(invs) == 1
+    inv = invs[0]
+    # All execution-specific fields present
+    for f in ("invocation_id", "claim_id", "claim_kind", "query_id",
+              "query_payload", "spec_version", "tool", "version",
+              "config", "timeout_ms", "execution_nonce"):
+        assert f in inv, f"missing {f}"
+    # query_id matches hash of payload
+    import hashlib, json
+    assert inv["query_id"] == hashlib.sha256(
+        json.dumps(json.loads(inv["query_payload"]), sort_keys=True,
+                   separators=(",", ":")).encode()).hexdigest()

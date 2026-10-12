@@ -33,8 +33,12 @@ _BINOP_CMP = {"=", "<", "<=", ">", ">="}
 def validate(query):
     if not isinstance(query, dict):
         raise MSVEError("MALFORMED_INPUT", "query must be an object")
-    if query.get("language") != LANGUAGE:
-        raise MSVEError("MALFORMED_INPUT", f"unsupported query language: {query.get('language')!r}")
+    # 0.8.9.5 (Finding 5): distinguish malformed from unsupported language.
+    lang = query.get("language")
+    if not isinstance(lang, str):
+        raise MSVEError("MALFORMED_INPUT", f"language field must be a string, got {type(lang).__name__}")
+    if lang != LANGUAGE:
+        raise MSVEError("UNSUPPORTED", f"unsupported query language: {lang!r}")
     decls = query.get("declarations", [])
     assertions = query.get("assertions")
     if not isinstance(decls, list):
