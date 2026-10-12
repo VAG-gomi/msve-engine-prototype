@@ -117,6 +117,8 @@ def _run_impl(doc, cfg=None):
         # already binds claim_id + query_id).
         solver_obs["claim_id"] = cid
         solver_obs["spec_version"] = doc["spec_version"]
+        # 0.8.9.3: explicit bound on the invocation for SAT-corroboration binding
+        solver_obs["bound"] = cfg["solver_timeout_ms"]
         evidence["solver_observation"] = solver_obs
 
     outcome = solver_obs["outcome"] if solver_obs else None
@@ -189,6 +191,12 @@ def _run_impl(doc, cfg=None):
         import hashlib, json as _json
         w = rc.get("witness") or {}
         wbytes = _json.dumps(w, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        wartifact = hashlib.sha256(wbytes).hexdigest()
+        # 0.8.9.3: witness artifact resolves in evidence.witnesses
+        if "witnesses" not in evidence:
+            evidence["witnesses"] = []
+        if wartifact not in evidence["witnesses"]:
+            evidence["witnesses"].append(wartifact)
         sat_corrs.append({
             "claim_id": cid,
             "query_id": rc.get("query_id"),
@@ -197,7 +205,7 @@ def _run_impl(doc, cfg=None):
             "checker_version": rc.get("checker_version"),
             "configured_bound": rc.get("bound"),
             "witness": {
-                "artifact": hashlib.sha256(wbytes).hexdigest(),
+                "artifact": wartifact,
                 "checked_against": rc.get("query_id"),
                 "checked_by": rc.get("checker"),
                 "validation_result": "PASS",
