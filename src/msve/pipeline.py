@@ -28,7 +28,7 @@ def _invocation_id(claim_id_val, qid):
     return hashlib.sha256(f"{claim_id_val}:{qid}".encode()).hexdigest()
 
 
-def run(doc, cfg=None):
+def _run_impl(doc, cfg=None):
     """Execute the full pipeline on a decoded+validated document dict.
     Returns the typed result dict. Raises MSVEError on rejection.
 
@@ -182,6 +182,31 @@ def run(doc, cfg=None):
     # 7. verification records (capacity-gated slots)
     check_limit(cfg, "max_verification_records", 0, "verification records")
 
+    # 5b. typed SAT-corroboration records (0.8.9.2 §2): every binding explicit.
+    sat_corrs = []
+    rc = evidence.get("recompute")
+    if rc and rc.get("agrees") and rc.get("witness_validated"):
+        import hashlib, json as _json
+        w = rc.get("witness") or {}
+        wbytes = _json.dumps(w, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        sat_corrs.append({
+            "claim_id": cid,
+            "query_id": rc.get("query_id"),
+            "spec_version": descriptor.get("spec_version"),
+            "checker": rc.get("checker"),
+            "checker_version": rc.get("checker_version"),
+            "configured_bound": rc.get("bound"),
+            "witness": {
+                "artifact": hashlib.sha256(wbytes).hexdigest(),
+                "checked_against": rc.get("query_id"),
+                "checked_by": rc.get("checker"),
+                "validation_result": "PASS",
+            },
+            "execution": {
+                "method": "independent-sat-check",
+                "detail": rc.get("note"),
+            },
+        })
     return resmod.build(
         admission_verdict=verdict,
         admission_notes=notes,
@@ -193,9 +218,64 @@ def run(doc, cfg=None):
         assurance=assurance,
         evidence={k: v for k, v in evidence.items() if k != "solver_observation"},
         discrepancies=discrepancies,
+        sat_corroborations=sat_corrs,
         quarantined_input_evidence=quarantined,
         provenance=dict(ARCHIVAL),
     )
+
+
+def run(doc, cfg=None):
+    """Execute the full pipeline. Returns the typed result dict.
+
+    Capacity overflow (CAPACITY_EXCEEDED) is returned as a typed result with
+    an explicit capacity_exceeded field (Correction 0.8.9.2 §6), not raised.
+    Other MSVEError rejections are still raised.
+    """
+    try:
+        return _run_impl(doc, cfg)
+    except MSVEError as e:
+        if e.code != "CAPACITY_EXCEEDED":
+            raise
+        # Build the minimal descriptor for the capacity-failure result.
+        # (Identity is computable from the claim even when capacity fails.)
+        claim = doc.get("claim", {})
+        descriptor = {
+            "kind": claim.get("kind"),
+            "proposition": claim.get("proposition"),
+            "goal_ref": claim.get("goal_ref"),
+            "inputs_ref": claim.get("inputs_ref"),
+            "assumptions": claim.get("assumptions", []),
+            "spec_version": doc.get("spec_version"),
+            "assurance_required": claim.get("assurance_required"),
+        }
+        try:
+            cid = ident.claim_id(descriptor)
+        except Exception:
+            cid = None
+        d = e.details or {}
+        return resmod.build(
+            admission_verdict="ACCEPTED",
+            admission_notes=[],
+            descriptor=descriptor,
+            claim_id_val=cid,
+            query_id_val=None,
+            semantic_result={"variant": "INCONCLUSIVE", "reason": "capacity-exceeded"},
+            solver_observation=None,
+            assurance={"basis": None, "weak": False,
+                       "notes": ["capacity exceeded; no basis awarded"]},
+            evidence={},
+            discrepancies=[],
+            sat_corroborations=[],
+            quarantined_input_evidence=[],
+            provenance=dict(ARCHIVAL),
+            capacity_exceeded={
+                "parameter": d.get("key"),
+                "limit": d.get("limit"),
+                "actual": d.get("actual"),
+                "detail": str(e),
+            },
+        )
+
 
 
 def run_text(text, cfg=None):

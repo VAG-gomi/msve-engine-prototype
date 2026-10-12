@@ -76,9 +76,9 @@ def test_solver_backed_underspecified_without_query():
 def test_capacity_exceeded_assumptions():
     d = doc()
     d["claim"]["assumptions"] = [f"a{i}" for i in range(17)]
-    with pytest.raises(MSVEError) as e:
-        run_doc(d)
-    assert e.value.code == "CAPACITY_EXCEEDED"
+    r = run_doc(d)
+    assert r["capacity_exceeded"] is not None
+    assert r["capacity_exceeded"]["parameter"] == "max_assumptions"
 
 
 def test_capacity_exceeded_assertions():
@@ -86,9 +86,9 @@ def test_capacity_exceeded_assertions():
     q = holds_query()
     q["assertions"] = [["=", 1, 1]] * 65
     d["claim"]["query"] = q
-    with pytest.raises(MSVEError) as e:
-        run_doc(d)
-    assert e.value.code == "CAPACITY_EXCEEDED"
+    r = run_doc(d)
+    assert r["capacity_exceeded"] is not None
+    assert r["capacity_exceeded"]["parameter"] == "max_assertions"
 
 
 def test_capacity_boundary_exact():
@@ -110,6 +110,6 @@ def test_config_override_applied():
     cfg = load_config(overrides={"max_assumptions": 2})
     d = doc()
     d["claim"]["assumptions"] = ["a", "b", "c"]
-    with pytest.raises(MSVEError) as e:
-        run_doc(d, cfg)
-    assert e.value.code == "CAPACITY_EXCEEDED"
+    r = run_doc(d, cfg)
+    assert r["capacity_exceeded"] is not None
+    assert r["capacity_exceeded"]["parameter"] == "max_assumptions"

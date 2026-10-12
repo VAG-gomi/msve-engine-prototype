@@ -22,9 +22,9 @@ def test_input_config_capacity_honored():
     d["claim"]["query"] = holds_query()
     d["config"] = {"capacity": {"max_assumptions": 1}}
     d["claim"]["assumptions"] = ["a", "b"]  # exceeds the input-set limit
-    with pytest.raises(MSVEError) as e:
-        _run_no_cfg(d)
-    assert e.value.code == "CAPACITY_EXCEEDED"
+    r = _run_no_cfg(d)
+    assert r["capacity_exceeded"] is not None
+    assert r["capacity_exceeded"]["parameter"] == "max_assumptions"
 
 
 def test_input_config_invalid_rejected():

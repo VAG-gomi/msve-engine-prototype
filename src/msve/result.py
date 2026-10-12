@@ -7,7 +7,7 @@ import time
 def build(admission_verdict, admission_notes, descriptor, claim_id_val,
           semantic_result, solver_observation, assurance, evidence,
           discrepancies, provenance, quarantined_input_evidence=None,
-          query_id_val=None):
+          query_id_val=None, sat_corroborations=None, capacity_exceeded=None):
     result = {
         "experimental": True,
         "admission": admission_verdict,
@@ -39,6 +39,8 @@ def build(admission_verdict, admission_notes, descriptor, claim_id_val,
         "evidence": evidence or {},
         "quarantined_input_evidence": quarantined_input_evidence or [],
         "verification_records": [],
+        "sat_corroborations": sat_corroborations or [],
+        "capacity_exceeded": capacity_exceeded,
         "discrepancies": discrepancies,
         "provenance": provenance,
         "produced_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
